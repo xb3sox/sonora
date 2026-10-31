@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { tracks, recommendations, genres, artists } from '../data';
 import { View } from '../types';
+import { AlbumArt } from '../components/AlbumArt';
 import { 
   Sparkles, Compass, ArrowRight, Play, 
   Info, Disc3, Users, Music2, SlidersHorizontal
@@ -29,9 +30,9 @@ export function ExplorePage({ onNavigate }: ExplorePageProps) {
     : tracks.filter(t => t.genre === selectedGenre);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-6 sm:p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <header className="mb-8">
+      <header className="mb-8 pt-8 sm:pt-0">
         <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-2">
           Explore
         </h1>
@@ -78,9 +79,7 @@ export function ExplorePage({ onNavigate }: ExplorePageProps) {
               className="bg-sonora-warm rounded-xl p-5 hover:bg-sonora-sand transition-calm group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-sonora-accent/20 to-sonora-sage/20 flex items-center justify-center flex-shrink-0">
-                  <Music2 size={22} className="text-sonora-earth" />
-                </div>
+                <AlbumArt type="track" id={rec.track.id} size="lg" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -100,7 +99,7 @@ export function ExplorePage({ onNavigate }: ExplorePageProps) {
                     <Info size={14} className="text-sonora-accent mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-xs text-sonora-earth leading-relaxed">{rec.reason}</p>
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
                         <span className="text-[10px] font-semibold text-sonora-sage bg-sonora-sage/10 px-2 py-0.5 rounded-full">
                           Intent: {rec.intent}
                         </span>
@@ -144,7 +143,7 @@ export function ExplorePage({ onNavigate }: ExplorePageProps) {
               onClick={() => play(track)}
               className="flex items-center gap-3 p-3 rounded-lg hover:bg-sonora-warm transition-calm group text-left"
             >
-              <div className="w-10 h-10 rounded bg-sonora-sand flex-shrink-0" />
+              <AlbumArt type="track" id={track.id} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sonora-bark truncate">{track.title}</p>
                 <p className="text-xs text-sonora-stone truncate">{track.artist} · {track.genre}</p>
@@ -168,13 +167,13 @@ export function ExplorePage({ onNavigate }: ExplorePageProps) {
             <button
               key={artist.id}
               onClick={() => onNavigate('artist', artist.id)}
-              className="group text-left"
+              className="group text-center"
             >
-              <div className="w-full aspect-square rounded-full bg-gradient-to-br from-sonora-sand to-sonora-mist mb-3 flex items-center justify-center overflow-hidden">
-                <Users size={28} className="text-sonora-stone" />
+              <div className="w-full aspect-square max-w-[140px] mx-auto rounded-full overflow-hidden mb-3 shadow-md">
+                <AlbumArt type="artist" id={artist.id} size="xl" className="w-full h-full" />
               </div>
-              <p className="text-sm font-medium text-sonora-bark text-center">{artist.name}</p>
-              <p className="text-xs text-sonora-stone text-center">{artist.genres[0]}</p>
+              <p className="text-sm font-medium text-sonora-bark">{artist.name}</p>
+              <p className="text-xs text-sonora-stone">{artist.genres[0]}</p>
             </button>
           ))}
         </div>

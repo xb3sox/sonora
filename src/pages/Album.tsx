@@ -2,9 +2,11 @@ import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { albums, tracks } from '../data';
 import { View } from '../types';
+import { AlbumArt } from '../components/AlbumArt';
+import { TrackRow } from '../components/TrackRow';
 import { 
-  Play, Clock, Disc3, ArrowLeft, 
-  Music2, Info, Pause
+  Play, Clock, ArrowLeft, 
+  Pause, Info
 } from 'lucide-react';
 
 interface AlbumPageProps {
@@ -31,7 +33,7 @@ export function AlbumPage({ albumId, onNavigate }: AlbumPageProps) {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Back */}
-      <div className="p-8 pb-0">
+      <div className="p-6 sm:p-8 pb-0">
         <button
           onClick={() => onNavigate('home')}
           className="flex items-center gap-2 text-sm text-sonora-stone hover:text-sonora-bark transition-calm mb-6"
@@ -41,14 +43,14 @@ export function AlbumPage({ albumId, onNavigate }: AlbumPageProps) {
       </div>
 
       {/* Album Header */}
-      <div className="px-8 pb-8 flex flex-col md:flex-row items-start gap-6">
-        <div className="w-48 h-48 rounded-xl bg-gradient-to-br from-sonora-sand to-sonora-mist flex items-center justify-center flex-shrink-0 shadow-lg">
-          <Disc3 size={48} className="text-sonora-stone" />
+      <div className="px-6 sm:px-8 pb-8 flex flex-col md:flex-row items-start gap-6">
+        <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-xl flex-shrink-0 shadow-lg overflow-hidden">
+          <AlbumArt type="album" id={album.id} size="xl" className="w-full h-full" />
         </div>
         <div className="flex-1">
           <p className="text-xs font-semibold text-sonora-stone uppercase tracking-wider mb-1">Album</p>
           <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-2">{album.title}</h1>
-          <div className="flex items-center gap-2 text-sm text-sonora-stone mb-3">
+          <div className="flex items-center gap-2 text-sm text-sonora-stone mb-3 flex-wrap">
             <button 
               onClick={() => onNavigate('artist', album.artistId)}
               className="font-medium text-sonora-earth hover:text-sonora-bark transition-calm"
@@ -84,48 +86,16 @@ export function AlbumPage({ albumId, onNavigate }: AlbumPageProps) {
       </div>
 
       {/* Track List */}
-      <div className="px-8 pb-8">
-        <div className="space-y-1">
-          {albumTracks.map((track, i) => {
-            if (!track) return null;
-            const isCurrentTrack = state.currentTrack?.id === track.id;
-            return (
-              <button
-                key={track.id}
-                onClick={() => play(track)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-calm group text-left
-                  ${isCurrentTrack ? 'bg-sonora-warm' : 'hover:bg-sonora-warm'}`}
-              >
-                <span className="w-6 text-center text-xs text-sonora-stone group-hover:hidden">
-                  {isCurrentTrack && state.isPlaying ? (
-                    <span className="inline-block w-3 h-3 border-2 border-sonora-bark border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    i + 1
-                  )}
-                </span>
-                <Play size={14} className="w-6 text-center text-sonora-bark hidden group-hover:block" />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm truncate ${isCurrentTrack ? 'text-sonora-bark font-medium' : 'text-sonora-bark'}`}>
-                    {track.title}
-                  </p>
-                </div>
-                {track.lossless && (
-                  <span className="text-[9px] font-semibold text-sonora-sage bg-sonora-sage/10 px-1 py-0.5 rounded hidden md:block">
-                    FLAC
-                  </span>
-                )}
-                <span className="text-xs text-sonora-stone flex items-center gap-1">
-                  <Clock size={12} />
-                  {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
-                </span>
-              </button>
-            );
-          })}
+      <div className="px-6 sm:px-8 pb-8">
+        <div className="space-y-0.5">
+          {albumTracks.map((track, i) => (
+            track && <TrackRow key={track.id} track={track} index={i} showAlbum={false} />
+          ))}
         </div>
       </div>
 
       {/* Album Credits */}
-      <div className="px-8 pb-8">
+      <div className="px-6 sm:px-8 pb-8">
         <div className="bg-sonora-warm rounded-xl p-6">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-sonora-bark mb-4">
             <Info size={14} /> Album Credits
@@ -153,6 +123,12 @@ export function AlbumPage({ albumId, onNavigate }: AlbumPageProps) {
               <div>
                 <p className="text-xs text-sonora-stone uppercase tracking-wider mb-1">Recorded</p>
                 <p className="text-sonora-earth">{albumTracks[0].credits.recorded}</p>
+              </div>
+            )}
+            {albumTracks[0]?.credits.songwriter && (
+              <div className="md:col-span-2">
+                <p className="text-xs text-sonora-stone uppercase tracking-wider mb-1">Songwriters</p>
+                <p className="text-sonora-earth">{albumTracks[0].credits.songwriter.join(', ')}</p>
               </div>
             )}
           </div>

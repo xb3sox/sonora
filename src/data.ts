@@ -1,5 +1,61 @@
 import { Track, Album, Artist, Playlist, DiscoveryRecommendation } from './types';
 
+// Unique gradient palettes for each album
+const albumGradients: Record<string, string> = {
+  al1: 'from-[#C4B5A0] via-[#A89888] to-[#8B7D6B]',   // Warm taupe
+  al2: 'from-[#B8C5A0] via-[#96A87A] to-[#7A8B60]',   // Sage green
+  al3: 'from-[#7A9BB5] via-[#5A7D96] to-[#3D5F78]',   // Deep ocean
+  al4: 'from-[#D4A88C] via-[#C49070] to-[#A87050]',   // Warm terracotta
+};
+
+// Unique gradient palettes for each track (derived from album but with variation)
+const trackGradients: Record<string, string> = {
+  t1: 'from-[#D4C5B0] via-[#C4B5A0] to-[#B8A890]',
+  t2: 'from-[#C4B5A0] via-[#B0A090] to-[#9B8B78]',
+  t3: 'from-[#B8A890] via-[#A89888] to-[#988878]',
+  t4: 'from-[#C8D5B0] via-[#B8C5A0] to-[#A0B088]',
+  t5: 'from-[#B8C5A0] via-[#A0B088] to-[#889870]',
+  t6: 'from-[#8AABC5] via-[#7A9BB5] to-[#6A8BA5]',
+  t7: 'from-[#7A9BB5] via-[#6A8BA5] to-[#5A7B95]',
+  t8: 'from-[#E4B89C] via-[#D4A88C] to-[#C4987C]',
+  t9: 'from-[#D4A88C] via-[#C4987C] to-[#B4886C]',
+  t10: 'from-[#C4B5A0] via-[#A89888] to-[#8B7D6B]',
+  t11: 'from-[#A0B088] via-[#96A87A] to-[#7A8B60]',
+  t12: 'from-[#6A8BA5] via-[#5A7D96] to-[#3D5F78]',
+};
+
+// Playlist gradients
+const playlistGradients: Record<string, string> = {
+  p1: 'from-[#E8D5C0] via-[#D4C0A8] to-[#C0AB90]',  // Morning warmth
+  p2: 'from-[#A0B8C0] via-[#88A0A8] to-[#708890]',  // Cool focus
+  p3: 'from-[#C0A8D0] via-[#A890B8] to-[#9078A0]',  // Evening purple
+  p4: 'from-[#B8D0A0] via-[#A0B888] to-[#88A070]',  // Fresh discovery
+};
+
+// Artist gradients
+const artistGradients: Record<string, string> = {
+  a1: 'from-[#C4B5A0] via-[#A89888] to-[#8B7D6B]',
+  a2: 'from-[#B8C5A0] via-[#96A87A] to-[#7A8B60]',
+  a3: 'from-[#7A9BB5] via-[#5A7D96] to-[#3D5F78]',
+  a4: 'from-[#D4A88C] via-[#C49070] to-[#A87050]',
+};
+
+export function getAlbumGradient(albumId: string): string {
+  return albumGradients[albumId] || 'from-sonora-sand to-sonora-mist';
+}
+
+export function getTrackGradient(trackId: string): string {
+  return trackGradients[trackId] || 'from-sonora-sand to-sonora-mist';
+}
+
+export function getPlaylistGradient(playlistId: string): string {
+  return playlistGradients[playlistId] || 'from-sonora-sand to-sonora-mist';
+}
+
+export function getArtistGradient(artistId: string): string {
+  return artistGradients[artistId] || 'from-sonora-sand to-sonora-mist';
+}
+
 export const tracks: Track[] = [
   {
     id: 't1',
@@ -294,7 +350,7 @@ export const artists: Artist[] = [
   {
     id: 'a1',
     name: 'Elena Voss',
-    bio: 'Ambient composer and sound artist from Portland, Oregon. Her work explores the intersection of silence and sound, creating immersive environments that invite deep listening.',
+    bio: 'Ambient composer and sound artist from Portland, Oregon. Her work explores the intersection of silence and sound, creating immersive environments that invite deep listening. Each piece is crafted to create a space for presence and reflection.',
     image: '',
     albums: ['al1'],
     genres: ['Ambient', 'Experimental']
@@ -302,7 +358,7 @@ export const artists: Artist[] = [
   {
     id: 'a2',
     name: 'The Wandering Collective',
-    bio: 'A folk ensemble formed in Copenhagen, bringing together musicians from across Scandinavia. Their music draws from traditional storytelling and the landscapes they traverse.',
+    bio: 'A folk ensemble formed in Copenhagen, bringing together musicians from across Scandinavia. Their music draws from traditional storytelling and the landscapes they traverse, creating songs that feel both ancient and immediate.',
     image: '',
     albums: ['al2'],
     genres: ['Folk', 'Indie Folk']
@@ -310,7 +366,7 @@ export const artists: Artist[] = [
   {
     id: 'a3',
     name: 'Kai Nomura',
-    bio: 'Electronic producer and sound designer based in Tokyo. Nomura creates compositions that blend field recordings with synthesized textures, exploring natural patterns through digital means.',
+    bio: 'Electronic producer and sound designer based in Tokyo. Nomura creates compositions that blend field recordings with synthesized textures, exploring natural patterns through digital means. His work has been featured in galleries and installations worldwide.',
     image: '',
     albums: ['al3'],
     genres: ['Electronic', 'Ambient']
@@ -318,7 +374,7 @@ export const artists: Artist[] = [
   {
     id: 'a4',
     name: 'Maren Solberg',
-    bio: 'Singer-songwriter from Oslo whose intimate folk compositions explore themes of distance, memory, and connection through correspondence.',
+    bio: 'Singer-songwriter from Oslo whose intimate folk compositions explore themes of distance, memory, and connection through correspondence. Her sparse arrangements let every word and note breathe.',
     image: '',
     albums: ['al4'],
     genres: ['Indie Folk', 'Singer-Songwriter']
@@ -362,22 +418,22 @@ export const playlists: Playlist[] = [
 export const recommendations: DiscoveryRecommendation[] = [
   {
     track: tracks[3],
-    reason: 'You\'ve been listening to ambient music this week. This folk piece shares its meditative quality.',
+    reason: 'You\'ve been listening to ambient music this week. This folk piece shares its meditative quality and slow build.',
     intent: 'Calm and reflection'
   },
   {
     track: tracks[5],
-    reason: 'Similar tempo and mood to your recent favorites. Electronic textures you tend to return to.',
+    reason: 'Similar tempo and mood to your recent favorites. You tend to return to electronic textures with natural motifs.',
     intent: 'Focused listening'
   },
   {
     track: tracks[7],
-    reason: 'This artist shares collaborators with Elena Voss. Intimate songwriting you may connect with.',
+    reason: 'This artist shares a collaborator with Elena Voss (Marcus Chen engineered both). Intimate songwriting you may connect with.',
     intent: 'Deeper artist connection'
   },
   {
     track: tracks[10],
-    reason: 'You\'ve explored The Wandering Collective\'s earlier work. This track continues their narrative arc.',
+    reason: 'You\'ve explored The Wandering Collective\'s earlier work. This track continues their narrative arc of movement and home.',
     intent: 'Complete the journey'
   }
 ];

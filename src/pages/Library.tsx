@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { playlists, albums, tracks } from '../data';
 import { View } from '../types';
+import { AlbumArt } from '../components/AlbumArt';
+import { TrackRow } from '../components/TrackRow';
 import { 
-  Play, Music2, Disc3, Heart, Clock, 
+  Play, Music2, Disc3, Heart, 
   ListMusic, Grid3X3, List
 } from 'lucide-react';
 
@@ -12,7 +14,7 @@ interface LibraryPageProps {
 }
 
 export function LibraryPage({ onNavigate }: LibraryPageProps) {
-  const { play, playAlbum } = usePlayer();
+  const { play, playAlbum, favorites } = usePlayer();
   const [tab, setTab] = useState<'playlists' | 'albums' | 'tracks' | 'liked'>('playlists');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -23,15 +25,17 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
     { id: 'liked' as const, label: 'Liked', icon: <Heart size={16} /> },
   ];
 
+  const likedTracks = tracks.filter(t => favorites.has(t.id));
+
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-6 sm:p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex items-center justify-between mb-8 pt-8 sm:pt-0">
         <div>
           <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-1">Your Library</h1>
           <p className="text-sonora-stone text-sm">Your music, organized your way.</p>
         </div>
-        <div className="flex items-center gap-1 bg-sonora-warm rounded-lg p-1">
+        <div className="hidden sm:flex items-center gap-1 bg-sonora-warm rounded-lg p-1">
           <button
             onClick={() => setViewMode('grid')}
             className={`p-2 rounded-md transition-calm ${viewMode === 'grid' ? 'bg-sonora-bark text-sonora-cream' : 'text-sonora-stone'}`}
@@ -48,12 +52,12 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
       </header>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-sonora-sand pb-3">
+      <div className="flex items-center gap-1 mb-6 border-b border-sonora-sand pb-3 overflow-x-auto">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-calm
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-calm whitespace-nowrap
               ${tab === t.id
                 ? 'bg-sonora-warm text-sonora-bark'
                 : 'text-sonora-stone hover:text-sonora-earth'
@@ -61,6 +65,11 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
           >
             {t.icon}
             {t.label}
+            {t.id === 'liked' && favorites.size > 0 && (
+              <span className="text-[10px] bg-sonora-accent/20 text-sonora-accent px-1.5 py-0.5 rounded-full">
+                {favorites.size}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -79,8 +88,8 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
             >
               {viewMode === 'grid' ? (
                 <>
-                  <div className="aspect-square rounded-xl bg-gradient-to-br from-sonora-accent/20 to-sonora-sage/20 mb-3 flex items-center justify-center relative overflow-hidden">
-                    <Music2 size={28} className="text-sonora-earth" />
+                  <div className="aspect-square rounded-xl mb-3 relative overflow-hidden shadow-md">
+                    <AlbumArt type="playlist" id={playlist.id} size="xl" className="w-full h-full" />
                     <div className="absolute inset-0 bg-sonora-bark/0 group-hover:bg-sonora-bark/10 transition-calm flex items-center justify-center">
                       <div className="w-10 h-10 rounded-full bg-sonora-bark text-sonora-cream flex items-center justify-center opacity-0 group-hover:opacity-100 transition-calm">
                         <Play size={16} className="ml-0.5" />
@@ -92,9 +101,7 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
                 </>
               ) : (
                 <>
-                  <div className="w-10 h-10 rounded bg-sonora-sand flex-shrink-0 flex items-center justify-center">
-                    <Music2 size={16} className="text-sonora-earth" />
-                  </div>
+                  <AlbumArt type="playlist" id={playlist.id} size="md" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-sonora-bark truncate">{playlist.name}</p>
                     <p className="text-xs text-sonora-stone">{playlist.tracks.length} tracks</p>
@@ -120,8 +127,8 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
             >
               {viewMode === 'grid' ? (
                 <>
-                  <div className="aspect-square rounded-xl bg-gradient-to-br from-sonora-sand to-sonora-mist mb-3 flex items-center justify-center relative overflow-hidden">
-                    <Disc3 size={28} className="text-sonora-stone" />
+                  <div className="aspect-square rounded-xl mb-3 relative overflow-hidden shadow-md">
+                    <AlbumArt type="album" id={album.id} size="xl" className="w-full h-full" />
                     <div className="absolute inset-0 bg-sonora-bark/0 group-hover:bg-sonora-bark/10 transition-calm flex items-center justify-center">
                       <div className="w-10 h-10 rounded-full bg-sonora-bark text-sonora-cream flex items-center justify-center opacity-0 group-hover:opacity-100 transition-calm">
                         <Play size={16} className="ml-0.5" />
@@ -133,9 +140,7 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
                 </>
               ) : (
                 <>
-                  <div className="w-10 h-10 rounded bg-sonora-sand flex-shrink-0 flex items-center justify-center">
-                    <Disc3 size={16} className="text-sonora-earth" />
-                  </div>
+                  <AlbumArt type="album" id={album.id} size="md" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-sonora-bark truncate">{album.title}</p>
                     <p className="text-xs text-sonora-stone">{album.artist} · {album.year}</p>
@@ -149,36 +154,37 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
       )}
 
       {tab === 'tracks' && (
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {tracks.map((track, i) => (
-            <button
-              key={track.id}
-              onClick={() => play(track)}
-              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group text-left"
-            >
-              <span className="w-6 text-center text-xs text-sonora-stone group-hover:hidden">{i + 1}</span>
-              <Play size={14} className="w-6 text-center text-sonora-bark hidden group-hover:block" />
-              <div className="w-9 h-9 rounded bg-sonora-sand flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-sonora-bark truncate">{track.title}</p>
-                <p className="text-xs text-sonora-stone truncate">{track.artist}</p>
-              </div>
-              <span className="text-xs text-sonora-stone hidden md:block">{track.album}</span>
-              <span className="text-xs text-sonora-stone flex items-center gap-1">
-                <Clock size={12} />
-                {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
-              </span>
-            </button>
+            <TrackRow 
+              key={track.id} 
+              track={track} 
+              index={i}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
       )}
 
       {tab === 'liked' && (
-        <div className="text-center py-16">
-          <Heart size={40} className="text-sonora-sand mx-auto mb-4" />
-          <p className="text-sonora-stone text-sm">Tracks you love will appear here.</p>
-          <p className="text-sonora-stone text-xs mt-1">Tap the heart icon on any track to save it.</p>
-        </div>
+        likedTracks.length > 0 ? (
+          <div className="space-y-0.5">
+            {likedTracks.map((track, i) => (
+              <TrackRow 
+                key={track.id} 
+                track={track} 
+                index={i}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <Heart size={40} className="text-sonora-sand mx-auto mb-4" />
+            <p className="text-sonora-stone text-sm">Tracks you love will appear here.</p>
+            <p className="text-sonora-stone/60 text-xs mt-1">Tap the heart icon on any track to save it.</p>
+          </div>
+        )
       )}
     </div>
   );

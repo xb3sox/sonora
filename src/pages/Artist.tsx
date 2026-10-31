@@ -2,9 +2,10 @@ import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { artists, albums, tracks } from '../data';
 import { View } from '../types';
+import { AlbumArt } from '../components/AlbumArt';
+import { TrackRow } from '../components/TrackRow';
 import { 
-  Play, Disc3, Clock, Users, 
-  ArrowLeft, Music2, Award
+  Play, ArrowLeft, Users
 } from 'lucide-react';
 
 interface ArtistPageProps {
@@ -30,7 +31,7 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Artist Header */}
-      <div className="relative p-8 pb-6">
+      <div className="relative p-6 sm:p-8 pb-6">
         <button
           onClick={() => onNavigate('home')}
           className="flex items-center gap-2 text-sm text-sonora-stone hover:text-sonora-bark transition-calm mb-6"
@@ -39,13 +40,13 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
         </button>
         
         <div className="flex items-end gap-6">
-          <div className="w-32 h-32 rounded-full bg-gradient-to-br from-sonora-sand to-sonora-mist flex items-center justify-center flex-shrink-0">
-            <Users size={40} className="text-sonora-stone" />
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex-shrink-0 shadow-lg overflow-hidden">
+            <AlbumArt type="artist" id={artist.id} size="xl" className="w-full h-full" />
           </div>
           <div>
             <p className="text-xs font-semibold text-sonora-stone uppercase tracking-wider mb-1">Artist</p>
-            <h1 className="font-display text-4xl font-semibold text-sonora-bark mb-2">{artist.name}</h1>
-            <div className="flex items-center gap-3 text-sm text-sonora-stone">
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-sonora-bark mb-2">{artist.name}</h1>
+            <div className="flex items-center gap-3 text-sm text-sonora-stone flex-wrap">
               <span>{artist.genres.join(', ')}</span>
               <span>·</span>
               <span>{artistAlbums.length} {artistAlbums.length === 1 ? 'album' : 'albums'}</span>
@@ -57,12 +58,12 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
       </div>
 
       {/* Bio */}
-      <div className="px-8 mb-8">
+      <div className="px-6 sm:px-8 mb-8">
         <p className="text-sm text-sonora-earth leading-relaxed max-w-2xl">{artist.bio}</p>
       </div>
 
       {/* Albums */}
-      <div className="px-8 mb-8">
+      <div className="px-6 sm:px-8 mb-8">
         <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">Discography</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {artistAlbums.map(album => (
@@ -71,8 +72,8 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
               onClick={() => onNavigate('album', album.id)}
               className="group text-left"
             >
-              <div className="aspect-square rounded-xl bg-gradient-to-br from-sonora-sand to-sonora-mist mb-3 flex items-center justify-center relative overflow-hidden">
-                <Disc3 size={32} className="text-sonora-stone" />
+              <div className="aspect-square rounded-xl mb-3 relative overflow-hidden shadow-md">
+                <AlbumArt type="album" id={album.id} size="xl" className="w-full h-full" />
                 <div className="absolute inset-0 bg-sonora-bark/0 group-hover:bg-sonora-bark/10 transition-calm flex items-center justify-center">
                   <div className="w-10 h-10 rounded-full bg-sonora-bark text-sonora-cream flex items-center justify-center opacity-0 group-hover:opacity-100 transition-calm">
                     <Play size={16} className="ml-0.5" />
@@ -87,30 +88,16 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
       </div>
 
       {/* All Tracks */}
-      <div className="px-8 pb-8">
+      <div className="px-6 sm:px-8 pb-8">
         <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">All Tracks</h2>
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {artistTracks.map((track, i) => (
-            <button
-              key={track.id}
-              onClick={() => play(track)}
-              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group text-left"
-            >
-              <span className="w-6 text-center text-xs text-sonora-stone group-hover:hidden">{i + 1}</span>
-              <Play size={14} className="w-6 text-center text-sonora-bark hidden group-hover:block" />
-              <div className="w-9 h-9 rounded bg-sonora-sand flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-sonora-bark truncate">{track.title}</p>
-                <p className="text-xs text-sonora-stone truncate">{track.album}</p>
-              </div>
-              {track.lossless && (
-                <span className="text-[9px] font-semibold text-sonora-sage bg-sonora-sage/10 px-1 py-0.5 rounded">FLAC</span>
-              )}
-              <span className="text-xs text-sonora-stone flex items-center gap-1">
-                <Clock size={12} />
-                {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
-              </span>
-            </button>
+            <TrackRow 
+              key={track.id} 
+              track={track} 
+              index={i}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
       </div>

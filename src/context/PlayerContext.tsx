@@ -2,8 +2,17 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { Track, PlayerState } from '../types';
 import { tracks } from '../data';
 
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'info' | 'error';
+}
+
 interface PlayerContextType {
   state: PlayerState;
+  favorites: Set<string>;
+  toasts: Toast[];
+  showQueue: boolean;
   play: (track: Track) => void;
   playAlbum: (trackIds: string[]) => void;
   togglePlay: () => void;
@@ -14,6 +23,11 @@ interface PlayerContextType {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   addToQueue: (track: Track) => void;
+  removeFromQueue: (index: number) => void;
+  toggleFavorite: (trackId: string) => void;
+  isFavorite: (trackId: string) => boolean;
+  setShowQueue: (show: boolean) => void;
+  addToast: (message: string, type?: 'success' | 'info' | 'error') => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -28,6 +42,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     shuffle: false,
     repeat: 'off'
   });
+
+  const [favorites, setFavorites] = useState<Set<string>>(new Set(['t1', 't6', 't8']));
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [showQueue, setShowQueue] = useState(false);
 
   const intervalRef = useRef<number | null>(null);
 
@@ -52,6 +70,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [state.isPlaying, state.currentTrack]);
+
+  const addToast = useCallback((message: string, type: 'success' | 'info' | 'error' = 'info') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  }, []);
 
   const play = useCallback((track: Track) => {
     setState(prev => ({
@@ -129,11 +155,40 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       ...prev,
       queue: [...prev.queue, track]
     }));
+    addToast(`Added "${track.title}" to queue`, 'success');
+  }, [addToast]);
+
+  const removeFromQueue = useCallback((index: number) => {
+    setState(prev => ({
+      ...prev,
+      queue: prev.queue.filter((_, i) => i !== index)
+    }));
   }, []);
+
+  const toggleFavorite = useCallback((trackId: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(trackId)) {
+        next.delete(trackId);
+        addToast('Removed from Liked Tracks', 'info');
+      } else {
+        next.add(trackId);
+        addToast('Added to Liked Tracks', 'success');
+      }
+      return next;
+    });
+  }, [addToast]);
+
+  const isFavorite = useCallback((trackId: string) => {
+    return favorites.has(trackId);
+  }, [favorites]);
 
   return (
     <PlayerContext.Provider value={{
       state,
+      favorites,
+      toasts,
+      showQueue,
       play,
       playAlbum,
       togglePlay,
@@ -143,7 +198,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setVolume,
       toggleShuffle,
       toggleRepeat,
-      addToQueue
+      addToQueue,
+      removeFromQueue,
+      toggleFavorite,
+      isFavorite,
+      setShowQueue,
+      addToast,
     }}>
       {children}
     </PlayerContext.Provider>

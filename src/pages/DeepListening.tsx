@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { tracks } from '../data';
 import { View } from '../types';
+import { AlbumArt } from '../components/AlbumArt';
 import { 
   ArrowLeft, Headphones, Play, Pause, 
-  SkipForward, SkipBack, Info, Disc3,
-  Volume2
+  SkipForward, SkipBack, Info, Disc3
 } from 'lucide-react';
 
 interface DeepListeningPageProps {
@@ -47,8 +47,8 @@ export function DeepListeningPage({ onNavigate }: DeepListeningPageProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 pb-20">
         {/* Album Art */}
-        <div className="w-64 h-64 md:w-80 md:h-80 rounded-2xl bg-gradient-to-br from-sonora-earth/30 to-sonora-bark/50 mb-8 flex items-center justify-center shadow-2xl animate-float">
-          <Disc3 size={64} className="text-sonora-cream/20" />
+        <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-2xl mb-8 shadow-2xl animate-float overflow-hidden">
+          <AlbumArt type="album" id={track.albumId} size="xl" className="w-full h-full" />
         </div>
 
         {/* Track Info */}
@@ -68,14 +68,14 @@ export function DeepListeningPage({ onNavigate }: DeepListeningPageProps) {
         {/* Progress */}
         <div className="w-full max-w-md mb-8">
           <div className="flex items-center gap-3">
-            <span className="text-xs text-sonora-cream/40 w-10 text-right">{formatTime(currentTime)}</span>
+            <span className="text-xs text-sonora-cream/40 w-10 text-right tabular-nums">{formatTime(currentTime)}</span>
             <div className="flex-1 h-1 bg-sonora-cream/10 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-sonora-accent/60 rounded-full transition-all duration-1000"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="text-xs text-sonora-cream/40 w-10">{formatTime(track.duration)}</span>
+            <span className="text-xs text-sonora-cream/40 w-10 tabular-nums">{formatTime(track.duration)}</span>
           </div>
         </div>
 

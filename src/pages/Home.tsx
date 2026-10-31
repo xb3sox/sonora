@@ -2,13 +2,24 @@ import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { tracks, albums, playlists, recommendations } from '../data';
 import { View } from '../types';
+import { AlbumArt } from '../components/AlbumArt';
+import { TrackRow } from '../components/TrackRow';
 import { 
   Play, Headphones, Sparkles, ArrowRight, 
-  Clock, Disc3, Music
+  Disc3
 } from 'lucide-react';
 
 interface HomePageProps {
   onNavigate: (view: View, id?: string) => void;
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'Still up?';
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  if (hour < 21) return 'Good evening';
+  return 'Good night';
 }
 
 export function HomePage({ onNavigate }: HomePageProps) {
@@ -18,11 +29,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const recentTracks = tracks.slice(0, 6);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-6 sm:p-8 max-w-6xl mx-auto">
       {/* Greeting */}
-      <header className="mb-10">
+      <header className="mb-10 pt-8 sm:pt-0">
         <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-2">
-          Good to see you again
+          {getGreeting()}
         </h1>
         <p className="text-sonora-stone text-sm">
           Pick up where you left off, or discover something new.
@@ -38,11 +49,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onClick={() => onNavigate('playlist', playlist.id)}
               className="flex items-center gap-3 bg-sonora-warm hover:bg-sonora-sand rounded-lg p-3 transition-calm group text-left"
             >
-              <div className="w-10 h-10 rounded bg-gradient-to-br from-sonora-accent/30 to-sonora-clay/20 flex items-center justify-center flex-shrink-0">
-                <Music size={16} className="text-sonora-earth" />
-              </div>
-              <span className="text-sm font-medium text-sonora-bark truncate">{playlist.name}</span>
-              <Play size={14} className="ml-auto text-sonora-stone opacity-0 group-hover:opacity-100 transition-calm" />
+              <AlbumArt type="playlist" id={playlist.id} size="md" />
+              <span className="text-sm font-medium text-sonora-bark truncate flex-1">{playlist.name}</span>
+              <Play size={14} className="text-sonora-stone opacity-0 group-hover:opacity-100 transition-calm flex-shrink-0" />
             </button>
           ))}
         </div>
@@ -70,9 +79,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onClick={() => play(rec.track)}
             >
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-sonora-accent/20 to-sonora-sage/20 flex items-center justify-center flex-shrink-0">
-                  <Disc3 size={20} className="text-sonora-earth" />
-                </div>
+                <AlbumArt type="track" id={rec.track.id} size="lg" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-sonora-bark truncate">{rec.track.title}</p>
                   <p className="text-xs text-sonora-stone">{rec.track.artist}</p>
@@ -86,7 +93,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     </span>
                   </div>
                 </div>
-                <button className="opacity-0 group-hover:opacity-100 transition-calm p-2 rounded-full bg-sonora-bark text-sonora-cream">
+                <button className="opacity-0 group-hover:opacity-100 transition-calm p-2 rounded-full bg-sonora-bark text-sonora-cream flex-shrink-0">
                   <Play size={14} />
                 </button>
               </div>
@@ -105,8 +112,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
               onClick={() => onNavigate('album', album.id)}
               className="group text-left"
             >
-              <div className="aspect-square rounded-xl bg-gradient-to-br from-sonora-sand to-sonora-mist mb-3 flex items-center justify-center overflow-hidden relative">
-                <Disc3 size={32} className="text-sonora-stone" />
+              <div className="aspect-square rounded-xl mb-3 relative overflow-hidden">
+                <AlbumArt type="album" id={album.id} size="xl" className="w-full h-full" />
                 <div className="absolute inset-0 bg-sonora-bark/0 group-hover:bg-sonora-bark/10 transition-calm flex items-center justify-center">
                   <div className="w-10 h-10 rounded-full bg-sonora-bark text-sonora-cream flex items-center justify-center opacity-0 group-hover:opacity-100 transition-calm shadow-lg">
                     <Play size={16} className="ml-0.5" />
@@ -123,33 +130,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* Recently Played */}
       <section className="mb-8">
         <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">Recently Played</h2>
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {recentTracks.map((track, i) => (
-            <button
-              key={track.id}
-              onClick={() => play(track)}
-              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group text-left"
-            >
-              <span className="w-6 text-center text-xs text-sonora-stone group-hover:hidden">{i + 1}</span>
-              <Play size={14} className="w-6 text-center text-sonora-bark hidden group-hover:block" />
-              <div className="w-9 h-9 rounded bg-sonora-sand flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-sonora-bark truncate">{track.title}</p>
-                <p className="text-xs text-sonora-stone truncate">{track.artist}</p>
-              </div>
-              <span className="text-xs text-sonora-stone hidden md:block">{track.album}</span>
-              <div className="flex items-center gap-2">
-                {track.lossless && (
-                  <span className="text-[9px] font-semibold text-sonora-sage bg-sonora-sage/10 px-1 py-0.5 rounded">
-                    FLAC
-                  </span>
-                )}
-                <span className="text-xs text-sonora-stone flex items-center gap-1">
-                  <Clock size={12} />
-                  {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
-                </span>
-              </div>
-            </button>
+            <TrackRow 
+              key={track.id} 
+              track={track} 
+              index={i}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
       </section>
