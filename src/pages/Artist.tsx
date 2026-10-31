@@ -7,16 +7,17 @@ import { TrackRow } from '../components/TrackRow';
 import { FollowButton } from '../components/FollowButton';
 import { TipButton } from '../components/TipButton';
 import { 
-  Play, ArrowLeft, Users, BookOpen
+  Play, ArrowLeft, Users, BookOpen, Radio
 } from 'lucide-react';
 
 interface ArtistPageProps {
   artistId: string;
   onNavigate: (view: View, id?: string) => void;
   onTipArtist?: (artistId: string) => void;
+  onOpenArtistRadio?: (artistId: string) => void;
 }
 
-export function ArtistPage({ artistId, onNavigate, onTipArtist }: ArtistPageProps) {
+export function ArtistPage({ artistId, onNavigate, onTipArtist, onOpenArtistRadio }: ArtistPageProps) {
   const { play, playAlbum } = usePlayer();
   const artist = artists.find(a => a.id === artistId);
   
@@ -63,6 +64,14 @@ export function ArtistPage({ artistId, onNavigate, onTipArtist }: ArtistPageProp
               >
                 <BookOpen size={14} /> The Story
               </button>
+              {onOpenArtistRadio && (
+                <button
+                  onClick={() => onOpenArtistRadio(artistId)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-sonora-accent/10 hover:bg-sonora-accent/20 rounded-full text-sm font-medium text-sonora-accent transition-calm"
+                >
+                  <Radio size={14} /> Start Radio
+                </button>
+              )}
               <FollowButton artistId={artistId} artistName={artist.name} />
               {onTipArtist && <TipButton onClick={() => onTipArtist(artistId)} />}
             </div>

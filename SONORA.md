@@ -214,7 +214,14 @@ Proprietary - Sonora Music Platform
 
 Built with care for listeners who want to discover less and love more.
 
-## Latest Updates (v1.1)
+## Latest Updates (v1.2)
+- **Media Session API**: OS-level playback controls (lock screen, notifications, Bluetooth)
+- **Audio Visualizer**: Beautiful real-time waveform visualization in Deep Listening
+- **Artist Radio**: Smart stations based on any artist with auto-advance
+- **Playback Speed Control**: 0.5x to 2x speed adjustment for practice/learning
+- **Search Filters**: Filter results by tracks, albums, or artists with counts
+- **Audio Quality Indicator**: Visual feedback showing current streaming quality
+- **Browser Tab Updates**: Dynamic tab titles showing current track
 - **Command Palette** (Cmd/Ctrl+K): Power user feature for quick navigation
 - **Local Storage Persistence**: Favorites and preferences survive page reloads
 - **Profile Page**: User account management with data export/import
@@ -227,8 +234,11 @@ Built with care for listeners who want to discover less and love more.
 - **Mobile Now Playing**: Full-screen player with swipe gestures
 
 ## Architecture Highlights
-- **35+ Components**: Modular, reusable UI components
+- **40+ Components**: Modular, reusable UI components
 - **3 Context Providers**: Player, Follow, PlayCount state management
-- **Custom Hooks**: useLocalStorage, useSessionStorage for persistence
+- **Custom Hooks**: useLocalStorage, useSessionStorage, useMediaSession, useDocumentTitle
 - **Type-Safe**: Full TypeScript coverage across all files
 - **Zero Dependencies**: Everything built in-house for maximum control
+- **Canvas Visualizations**: Hardware-accelerated audio visualizations
+- **Browser APIs**: Media Session, LocalStorage, Canvas, requestAnimationFrame
+- **Progressive Enhancement**: Features gracefully degrade on older browsers

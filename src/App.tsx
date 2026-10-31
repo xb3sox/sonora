@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
 import { FollowProvider } from './context/FollowContext';
 import { PlayCountProvider, usePlayCount } from './context/PlayCountContext';
+import { useMediaSession } from './hooks/useMediaSession';
+import { useDocumentTitle } from './hooks/useDocumentTitle';
 import { Sidebar } from './components/Sidebar';
 import { PlayerBar } from './components/Player';
 import { MobileNav } from './components/MobileNav';
@@ -18,6 +20,11 @@ import { NowPlayingView } from './components/NowPlayingView';
 import { TipArtistModal } from './components/TipArtistModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { AudioVisualizer } from './components/AudioVisualizer';
+import { ArtistRadio } from './components/ArtistRadio';
+import { PlaybackSpeedControl } from './components/PlaybackSpeedControl';
+import { SearchFilters } from './components/SearchFilters';
+import { AudioQualityIndicator } from './components/AudioQualityIndicator';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -53,6 +60,14 @@ function AppContent() {
   const [tipArtistOpen, setTipArtistOpen] = useState(false);
   const [tipArtistId, setTipArtistId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [artistRadioOpen, setArtistRadioOpen] = useState(false);
+  const [artistRadioId, setArtistRadioId] = useState<string | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [audioQuality] = useState<'standard' | 'high' | 'lossless'>('lossless');
+
+  // Initialize Media Session API and document title updates
+  useMediaSession();
+  useDocumentTitle();
   
   const { 
     state, showQueue, setShowQueue, togglePlay, next, previous, 
@@ -138,6 +153,7 @@ function AppContent() {
           artistId={selectedId || ''} 
           onNavigate={handleNavigate}
           onTipArtist={(id) => { setTipArtistId(id); setTipArtistOpen(true); }}
+          onOpenArtistRadio={(id) => { setArtistRadioId(id); setArtistRadioOpen(true); }}
         />;
       case 'artist-story':
         return <ArtistStoryPage artistId={selectedId || ''} onNavigate={handleNavigate} />;
@@ -256,6 +272,12 @@ function AppContent() {
           onClose={() => setCommandPaletteOpen(false)}
           onNavigate={handleNavigate}
         />
+        {artistRadioOpen && artistRadioId && (
+          <ArtistRadio
+            artistId={artistRadioId}
+            onClose={() => setArtistRadioOpen(false)}
+          />
+        )}
         <OfflineIndicator />
       </div>
     </PlayerProvider>

@@ -3,6 +3,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { tracks } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
+import { AudioVisualizer } from '../components/AudioVisualizer';
 import { 
   ArrowLeft, Headphones, Play, Pause, 
   SkipForward, SkipBack, Info, Disc3, Mic2
@@ -48,8 +49,13 @@ export function DeepListeningPage({ onNavigate, onOpenLyrics }: DeepListeningPag
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 pb-20">
         {/* Album Art */}
-        <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-2xl mb-8 shadow-2xl animate-float overflow-hidden">
+        <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-2xl mb-6 shadow-2xl animate-float overflow-hidden">
           <AlbumArt type="album" id={track.albumId} size="xl" className="w-full h-full" />
+        </div>
+
+        {/* Audio Visualizer */}
+        <div className="w-full max-w-md mb-6 opacity-60">
+          <AudioVisualizer variant="wave" height={48} color="#C4956A" />
         </div>
 
         {/* Track Info */}

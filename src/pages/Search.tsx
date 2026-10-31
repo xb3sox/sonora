@@ -4,6 +4,7 @@ import { tracks, albums, artists } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
+import { SearchFilters, SearchFilter } from '../components/SearchFilters';
 import { Search, Play, Music2, Disc3, Users } from 'lucide-react';
 
 interface SearchPageProps {
@@ -13,6 +14,7 @@ interface SearchPageProps {
 export function SearchPage({ onNavigate }: SearchPageProps) {
   const { play } = usePlayer();
   const [query, setQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<SearchFilter>('all');
 
   const results = useMemo(() => {
     if (!query.trim()) return { tracks: [], albums: [], artists: [] };
@@ -89,8 +91,19 @@ export function SearchPage({ onNavigate }: SearchPageProps) {
       {/* Results */}
       {hasResults && (
         <div className="space-y-8">
+          {/* Filters */}
+          <SearchFilters
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            resultCounts={{
+              tracks: results.tracks.length,
+              albums: results.albums.length,
+              artists: results.artists.length,
+            }}
+          />
+
           {/* Artists */}
-          {results.artists.length > 0 && (
+          {(activeFilter === 'all' || activeFilter === 'artists') && results.artists.length > 0 && (
             <section>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-sonora-stone uppercase tracking-wider mb-3">
                 <Users size={14} /> Artists
@@ -113,7 +126,7 @@ export function SearchPage({ onNavigate }: SearchPageProps) {
           )}
 
           {/* Albums */}
-          {results.albums.length > 0 && (
+          {(activeFilter === 'all' || activeFilter === 'albums') && results.albums.length > 0 && (
             <section>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-sonora-stone uppercase tracking-wider mb-3">
                 <Disc3 size={14} /> Albums
@@ -142,7 +155,7 @@ export function SearchPage({ onNavigate }: SearchPageProps) {
           )}
 
           {/* Tracks */}
-          {results.tracks.length > 0 && (
+          {(activeFilter === 'all' || activeFilter === 'tracks') && results.tracks.length > 0 && (
             <section>
               <h2 className="flex items-center gap-2 text-sm font-semibold text-sonora-stone uppercase tracking-wider mb-3">
                 <Music2 size={14} /> Tracks
