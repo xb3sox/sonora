@@ -10,16 +10,21 @@ import { SleepTimer } from './components/SleepTimer';
 import { AudioSettings } from './components/AudioSettings';
 import { ShareModal } from './components/ShareModal';
 import { KeyboardShortcuts, useKeyboardShortcuts } from './components/KeyboardShortcuts';
+import { LyricsView } from './components/LyricsView';
+import { CreatePlaylistModal } from './components/CreatePlaylistModal';
+import { NowPlayingView } from './components/NowPlayingView';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
 import { SearchPage } from './pages/Search';
 import { ArtistPage } from './pages/Artist';
+import { ArtistStoryPage } from './pages/ArtistStory';
 import { AlbumPage } from './pages/Album';
 import { PlaylistPage } from './pages/Playlist';
 import { DeepListeningPage } from './pages/DeepListening';
 import { SettingsPage } from './pages/Settings';
 import { StatsPage } from './pages/Stats';
+import { HistoryPage } from './pages/History';
 import { View } from './types';
 
 function AppContent() {
@@ -27,12 +32,15 @@ function AppContent() {
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchInputRef, setSearchInputRef] = useState<HTMLInputElement | null>(null);
   
   // Modals
   const [sleepTimerOpen, setSleepTimerOpen] = useState(false);
   const [audioSettingsOpen, setAudioSettingsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [lyricsOpen, setLyricsOpen] = useState(false);
+  const [createPlaylistOpen, setCreatePlaylistOpen] = useState(false);
+  const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
   
   const { 
     state, showQueue, setShowQueue, togglePlay, next, previous, 
@@ -66,6 +74,10 @@ function AppContent() {
       setSleepTimerOpen(false);
       setAudioSettingsOpen(false);
       setShareOpen(false);
+      setLyricsOpen(false);
+      setCreatePlaylistOpen(false);
+      setNowPlayingOpen(false);
+      setCreditsOpen(false);
       setShowQueue(false);
     },
   }), [state, showQueue, togglePlay, next, previous, setVolume, toggleShuffle, toggleRepeat, toggleFavorite, setShowQueue, handleNavigate]);
@@ -84,21 +96,25 @@ function AppContent() {
       case 'explore':
         return <ExplorePage onNavigate={handleNavigate} />;
       case 'library':
-        return <LibraryPage onNavigate={handleNavigate} />;
+        return <LibraryPage onNavigate={handleNavigate} onOpenCreatePlaylist={() => setCreatePlaylistOpen(true)} />;
       case 'search':
         return <SearchPage onNavigate={handleNavigate} />;
       case 'artist':
         return <ArtistPage artistId={selectedId || ''} onNavigate={handleNavigate} />;
+      case 'artist-story':
+        return <ArtistStoryPage artistId={selectedId || ''} onNavigate={handleNavigate} />;
       case 'album':
         return <AlbumPage albumId={selectedId || ''} onNavigate={handleNavigate} />;
       case 'playlist':
         return <PlaylistPage playlistId={selectedId || ''} onNavigate={handleNavigate} />;
       case 'deep-listening':
-        return <DeepListeningPage onNavigate={handleNavigate} />;
+        return <DeepListeningPage onNavigate={handleNavigate} onOpenLyrics={() => setLyricsOpen(true)} />;
       case 'settings':
         return <SettingsPage />;
       case 'stats':
         return <StatsPage />;
+      case 'history':
+        return <HistoryPage onNavigate={handleNavigate} />;
       default:
         return <HomePage onNavigate={handleNavigate} />;
     }
@@ -109,58 +125,20 @@ function AppContent() {
     return (
       <div className="h-screen flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto">
-          <DeepListeningPage onNavigate={handleNavigate} />
+          <DeepListeningPage onNavigate={handleNavigate} onOpenLyrics={() => setLyricsOpen(true)} />
         </div>
         <ToastContainer />
         <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
+        <LyricsView 
+          isOpen={lyricsOpen} 
+          onClose={() => setLyricsOpen(false)} 
+          track={state.currentTrack}
+          progress={state.progress}
+        />
       </div>
     );
   }
 
-  return (
-    <div className="h-screen flex flex-col overflow-hidden bg-sonora-cream">
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar (desktop) */}
-        <Sidebar 
-          currentView={currentView} 
-          onNavigate={handleNavigate}
-          isOpen={sidebarOpen}
-          onToggle={toggleSidebar}
-        />
-        
-        {/* Main Content */}
-        <main id="main-content" className="flex-1 overflow-y-auto pb-16 lg:pb-0">
-          {renderPage()}
-        </main>
-      </div>
-      
-      {/* Mobile Bottom Nav */}
-      <MobileNav currentView={currentView} onNavigate={handleNavigate} />
-      
-      {/* Player Bar */}
-      <PlayerBar 
-        onDeepListening={() => handleNavigate('deep-listening')}
-        onOpenSleepTimer={() => setSleepTimerOpen(true)}
-        onOpenAudioSettings={() => setAudioSettingsOpen(true)}
-        onOpenShare={() => setShareOpen(true)}
-      />
-      
-      {/* Modals & Overlays */}
-      <ToastContainer />
-      {showQueue && <QueueView onClose={() => setShowQueue(false)} />}
-      <SleepTimer isOpen={sleepTimerOpen} onClose={() => setSleepTimerOpen(false)} />
-      <AudioSettings isOpen={audioSettingsOpen} onClose={() => setAudioSettingsOpen(false)} />
-      <ShareModal 
-        isOpen={shareOpen} 
-        onClose={() => setShareOpen(false)} 
-        track={state.currentTrack} 
-      />
-      <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
-    </div>
-  );
-}
-
-export default function App() {
   return (
     <PlayerProvider>
       {/* Accessibility: Skip to content link */}
@@ -170,6 +148,70 @@ export default function App() {
       >
         Skip to content
       </a>
+      <div className="h-screen flex flex-col overflow-hidden bg-sonora-cream">
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar (desktop) */}
+          <Sidebar 
+            currentView={currentView} 
+            onNavigate={handleNavigate}
+            isOpen={sidebarOpen}
+            onToggle={toggleSidebar}
+          />
+          
+          {/* Main Content */}
+          <main id="main-content" className="flex-1 overflow-y-auto pb-16 lg:pb-0">
+            {renderPage()}
+          </main>
+        </div>
+        
+        {/* Mobile Bottom Nav */}
+        <MobileNav currentView={currentView} onNavigate={handleNavigate} />
+        
+        {/* Player Bar */}
+        <PlayerBar 
+          onDeepListening={() => handleNavigate('deep-listening')}
+          onOpenSleepTimer={() => setSleepTimerOpen(true)}
+          onOpenAudioSettings={() => setAudioSettingsOpen(true)}
+          onOpenShare={() => setShareOpen(true)}
+          onOpenNowPlaying={() => setNowPlayingOpen(true)}
+        />
+        
+        {/* Modals & Overlays */}
+        <ToastContainer />
+        {showQueue && <QueueView onClose={() => setShowQueue(false)} />}
+        <SleepTimer isOpen={sleepTimerOpen} onClose={() => setSleepTimerOpen(false)} />
+        <AudioSettings isOpen={audioSettingsOpen} onClose={() => setAudioSettingsOpen(false)} />
+        <ShareModal 
+          isOpen={shareOpen} 
+          onClose={() => setShareOpen(false)} 
+          track={state.currentTrack} 
+        />
+        <LyricsView 
+          isOpen={lyricsOpen} 
+          onClose={() => setLyricsOpen(false)} 
+          track={state.currentTrack}
+          progress={state.progress}
+        />
+        <CreatePlaylistModal 
+          isOpen={createPlaylistOpen}
+          onClose={() => setCreatePlaylistOpen(false)}
+        />
+        <NowPlayingView 
+          isOpen={nowPlayingOpen}
+          onClose={() => setNowPlayingOpen(false)}
+          onOpenQueue={() => { setNowPlayingOpen(false); setShowQueue(true); }}
+          onOpenLyrics={() => { setNowPlayingOpen(false); setLyricsOpen(true); }}
+          onOpenCredits={() => { setNowPlayingOpen(false); setCreditsOpen(true); }}
+        />
+        <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      </div>
+    </PlayerProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <PlayerProvider>
       <AppContent />
     </PlayerProvider>
   );

@@ -5,14 +5,15 @@ import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { 
   ArrowLeft, Headphones, Play, Pause, 
-  SkipForward, SkipBack, Info, Disc3
+  SkipForward, SkipBack, Info, Disc3, Mic2
 } from 'lucide-react';
 
 interface DeepListeningPageProps {
   onNavigate: (view: View) => void;
+  onOpenLyrics?: () => void;
 }
 
-export function DeepListeningPage({ onNavigate }: DeepListeningPageProps) {
+export function DeepListeningPage({ onNavigate, onOpenLyrics }: DeepListeningPageProps) {
   const { state, togglePlay, next, previous } = usePlayer();
   const { currentTrack, isPlaying, progress } = state;
   const [showCredits, setShowCredits] = useState(false);
@@ -101,14 +102,25 @@ export function DeepListeningPage({ onNavigate }: DeepListeningPageProps) {
           </button>
         </div>
 
-        {/* Credits Toggle */}
-        <button
-          onClick={() => setShowCredits(!showCredits)}
-          className="mt-8 flex items-center gap-2 text-sm text-sonora-cream/40 hover:text-sonora-cream/70 transition-calm"
-        >
-          <Info size={14} />
-          {showCredits ? 'Hide credits' : 'View credits'}
-        </button>
+        {/* Credits & Lyrics Toggles */}
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <button
+            onClick={() => setShowCredits(!showCredits)}
+            className="flex items-center gap-2 text-sm text-sonora-cream/40 hover:text-sonora-cream/70 transition-calm"
+          >
+            <Info size={14} />
+            {showCredits ? 'Hide credits' : 'View credits'}
+          </button>
+          {onOpenLyrics && (
+            <button
+              onClick={onOpenLyrics}
+              className="flex items-center gap-2 text-sm text-sonora-cream/40 hover:text-sonora-cream/70 transition-calm"
+            >
+              <Mic2 size={14} />
+              View lyrics
+            </button>
+          )}
+        </div>
 
         {/* Credits Panel */}
         {showCredits && (

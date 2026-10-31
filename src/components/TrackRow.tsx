@@ -5,7 +5,7 @@ import { AlbumArt } from './AlbumArt';
 import { 
   Play, Pause, Clock, Heart, 
   ListPlus, Info, MoreHorizontal, 
-  Disc3, User
+  Disc3, User, Share2
 } from 'lucide-react';
 
 interface TrackRowProps {
@@ -165,6 +165,12 @@ export function TrackRow({ track, index, showAlbum = true, onNavigate }: TrackRo
             <ListPlus size={14} /> Add to Queue
           </button>
           <button
+            onClick={(e) => { e.stopPropagation(); addToast('Open playlist selector (coming soon)', 'info'); setShowMenu(false); }}
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-sonora-bark hover:bg-sonora-warm transition-calm"
+          >
+            <ListPlus size={14} /> Add to Playlist
+          </button>
+          <button
             onClick={(e) => { e.stopPropagation(); toggleFavorite(track.id); setShowMenu(false); }}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-sonora-bark hover:bg-sonora-warm transition-calm"
           >
@@ -190,6 +196,12 @@ export function TrackRow({ track, index, showAlbum = true, onNavigate }: TrackRo
             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-sonora-bark hover:bg-sonora-warm transition-calm"
           >
             <Info size={14} /> View Credits
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); addToast('Share link copied', 'success'); setShowMenu(false); }}
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-sonora-bark hover:bg-sonora-warm transition-calm"
+          >
+            <Share2 size={14} /> Share
           </button>
         </div>
       )}

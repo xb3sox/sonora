@@ -12,9 +12,10 @@ interface PlayerBarProps {
   onOpenSleepTimer: () => void;
   onOpenAudioSettings: () => void;
   onOpenShare: () => void;
+  onOpenNowPlaying?: () => void;
 }
 
-export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare }: PlayerBarProps) {
+export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare, onOpenNowPlaying }: PlayerBarProps) {
   const { 
     state, togglePlay, next, previous, seek, setVolume, 
     toggleShuffle, toggleRepeat, toggleFavorite, isFavorite,
@@ -45,7 +46,13 @@ export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettin
     <div className="h-20 bg-sonora-warm border-t border-sonora-sand flex items-center px-4 gap-4">
       {/* Track Info */}
       <div className="flex items-center gap-3 w-56 min-w-0">
-        <AlbumArt type="track" id={currentTrack.id} size="md" />
+        <button 
+          onClick={onOpenNowPlaying}
+          className="flex-shrink-0 lg:cursor-default"
+          aria-label="Open now playing"
+        >
+          <AlbumArt type="track" id={currentTrack.id} size="md" />
+        </button>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-sonora-bark truncate">{currentTrack.title}</p>
           <p className="text-xs text-sonora-stone truncate">{currentTrack.artist}</p>

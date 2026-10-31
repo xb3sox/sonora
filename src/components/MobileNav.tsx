@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from '../types';
-import { Home, Compass, Library, Search, BarChart3 } from 'lucide-react';
+import { Home, Compass, Library, Search, Clock } from 'lucide-react';
 
 interface MobileNavProps {
   currentView: View;
@@ -13,7 +13,7 @@ export function MobileNav({ currentView, onNavigate }: MobileNavProps) {
     { view: 'explore' as View, icon: <Compass size={20} />, label: 'Explore' },
     { view: 'search' as View, icon: <Search size={20} />, label: 'Search' },
     { view: 'library' as View, icon: <Library size={20} />, label: 'Library' },
-    { view: 'stats' as View, icon: <BarChart3 size={20} />, label: 'Stats' },
+    { view: 'history' as View, icon: <Clock size={20} />, label: 'History' },
   ];
 
   return (

@@ -6,14 +6,15 @@ import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
 import { 
   Play, Music2, Disc3, Heart, 
-  ListMusic, Grid3X3, List, ArrowUpDown, Check
+  ListMusic, Grid3X3, List, ArrowUpDown, Check, Plus
 } from 'lucide-react';
 
 interface LibraryPageProps {
   onNavigate: (view: View, id?: string) => void;
+  onOpenCreatePlaylist?: () => void;
 }
 
-export function LibraryPage({ onNavigate }: LibraryPageProps) {
+export function LibraryPage({ onNavigate, onOpenCreatePlaylist }: LibraryPageProps) {
   const { play, playAlbum, favorites } = usePlayer();
   const [tab, setTab] = useState<'playlists' | 'albums' | 'tracks' | 'liked'>('playlists');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -62,6 +63,14 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
           <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-1">Your Library</h1>
           <p className="text-sonora-stone text-sm">Your music, organized your way.</p>
         </div>
+        {onOpenCreatePlaylist && (
+          <button
+            onClick={onOpenCreatePlaylist}
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-sonora-bark text-sonora-cream rounded-full text-sm font-medium hover:bg-sonora-night transition-calm"
+          >
+            <Plus size={14} /> New Playlist
+          </button>
+        )}
         <div className="hidden sm:flex items-center gap-1 bg-sonora-warm rounded-lg p-1">
           <button
             onClick={() => setViewMode('grid')}

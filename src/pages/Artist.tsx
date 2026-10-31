@@ -5,7 +5,7 @@ import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
 import { 
-  Play, ArrowLeft, Users
+  Play, ArrowLeft, Users, BookOpen
 } from 'lucide-react';
 
 interface ArtistPageProps {
@@ -43,16 +43,22 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
           <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex-shrink-0 shadow-lg overflow-hidden">
             <AlbumArt type="artist" id={artist.id} size="xl" className="w-full h-full" />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-xs font-semibold text-sonora-stone uppercase tracking-wider mb-1">Artist</p>
             <h1 className="font-display text-3xl sm:text-4xl font-semibold text-sonora-bark mb-2">{artist.name}</h1>
-            <div className="flex items-center gap-3 text-sm text-sonora-stone flex-wrap">
+            <div className="flex items-center gap-3 text-sm text-sonora-stone flex-wrap mb-3">
               <span>{artist.genres.join(', ')}</span>
               <span>·</span>
               <span>{artistAlbums.length} {artistAlbums.length === 1 ? 'album' : 'albums'}</span>
               <span>·</span>
               <span>{artistTracks.length} tracks</span>
             </div>
+            <button
+              onClick={() => onNavigate('artist-story', artistId)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-sonora-warm hover:bg-sonora-sand rounded-full text-sm font-medium text-sonora-bark transition-calm"
+            >
+              <BookOpen size={14} /> The Story
+            </button>
           </div>
         </div>
       </div>

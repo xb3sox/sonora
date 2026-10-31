@@ -166,7 +166,7 @@ export function ExplorePage({ onNavigate }: ExplorePageProps) {
           {artists.map(artist => (
             <button
               key={artist.id}
-              onClick={() => onNavigate('artist', artist.id)}
+              onClick={() => onNavigate('artist-story', artist.id)}
               className="group text-center"
             >
               <div className="w-full aspect-square max-w-[140px] mx-auto rounded-full overflow-hidden mb-3 shadow-md">
