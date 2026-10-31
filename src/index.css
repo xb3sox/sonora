@@ -1,1 +1,114 @@
 @import "tailwindcss";
+
+@theme {
+  --color-sonora-cream: #FAF8F5;
+  --color-sonora-warm: #F5F0EB;
+  --color-sonora-sand: #E8E0D8;
+  --color-sonora-stone: #9B9285;
+  --color-sonora-earth: #6B5E52;
+  --color-sonora-bark: #3D3428;
+  --color-sonora-night: #1A1612;
+  --color-sonora-accent: #C4956A;
+  --color-sonora-sage: #7A8B7A;
+  --color-sonora-clay: #B87D5E;
+  --color-sonora-mist: #D4CFC8;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-sonora-cream);
+  color: var(--color-sonora-bark);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-sonora-sand);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sonora-stone);
+}
+
+/* Smooth transitions */
+.transition-calm {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-sonora-sand);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-sonora-bark);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-sonora-bark);
+  cursor: pointer;
+  border: none;
+}
+
+/* Deep listening mode */
+.deep-listening-mode {
+  background: linear-gradient(180deg, #1A1612 0%, #2A2218 50%, #1A1612 100%);
+}
+
+/* Subtle animations */
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
