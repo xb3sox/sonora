@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Home, Compass, Library, Search, Headphones, Settings, 
   BarChart3, Clock, Music2, Disc3, Users, Play,
@@ -37,7 +37,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
     }
   }, [isOpen]);
 
-  const commands: CommandItem[] = [
+  const commands: CommandItem[] = useMemo(() => [
     // Navigation
     { id: 'home', label: 'Go to Home', icon: <Home size={16} />, action: () => onNavigate('home'), category: 'navigation' },
     { id: 'explore', label: 'Go to Explore', icon: <Compass size={16} />, action: () => onNavigate('explore'), category: 'navigation' },
@@ -82,26 +82,41 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
       action: () => onNavigate('artist', artist.id),
       category: 'content' as const
     })),
-  ];
+  ], [onNavigate, play, togglePlay, toggleShuffle, toggleRepeat]);
 
-  const filteredCommands = query.trim() === ''
-    ? commands
-    : commands.filter(cmd => 
-        cmd.label.toLowerCase().includes(query.toLowerCase()) ||
-        cmd.description?.toLowerCase().includes(query.toLowerCase())
-      );
+  const filteredCommands = useMemo(() => {
+    if (query.trim() === '') return commands;
+    return commands.filter(cmd => 
+      cmd.label.toLowerCase().includes(query.toLowerCase()) ||
+      cmd.description?.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [query, commands]);
+
+  const groupedCommands = useMemo(() => ({
+    navigation: filteredCommands.filter(c => c.category === 'navigation'),
+    playback: filteredCommands.filter(c => c.category === 'playback'),
+    content: filteredCommands.filter(c => c.category === 'content'),
+  }), [filteredCommands]);
+
+  // Build a flat list of all commands with their global indices
+  const flatCommands = useMemo(() => [
+    ...groupedCommands.navigation,
+    ...groupedCommands.playback,
+    ...groupedCommands.content,
+  ], [groupedCommands]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
+      setSelectedIndex(prev => (prev + 1) % Math.max(1, filteredCommands.length));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+      setSelectedIndex(prev => (prev - 1 + Math.max(1, filteredCommands.length)) % Math.max(1, filteredCommands.length));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (filteredCommands[selectedIndex]) {
-        filteredCommands[selectedIndex].action();
+      const cmd = flatCommands[selectedIndex];
+      if (cmd) {
+        cmd.action();
         onClose();
       }
     } else if (e.key === 'Escape') {
@@ -111,13 +126,10 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
 
   if (!isOpen) return null;
 
-  const groupedCommands = {
-    navigation: filteredCommands.filter(c => c.category === 'navigation'),
-    playback: filteredCommands.filter(c => c.category === 'playback'),
-    content: filteredCommands.filter(c => c.category === 'content'),
+  // Helper to get global index for a command
+  const getGlobalIndex = (cmd: CommandItem): number => {
+    return flatCommands.findIndex(c => c.id === cmd.id);
   };
-
-  let globalIndex = 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
@@ -154,7 +166,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
                     Navigation
                   </div>
                   {groupedCommands.navigation.map(cmd => {
-                    const index = globalIndex++;
+                    const index = getGlobalIndex(cmd);
                     return (
                       <button
                         key={cmd.id}
@@ -181,7 +193,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
                     Playback
                   </div>
                   {groupedCommands.playback.map(cmd => {
-                    const index = globalIndex++;
+                    const index = getGlobalIndex(cmd);
                     return (
                       <button
                         key={cmd.id}
@@ -205,7 +217,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate }: CommandPalettePr
                     Content
                   </div>
                   {groupedCommands.content.map(cmd => {
-                    const index = globalIndex++;
+                    const index = getGlobalIndex(cmd);
                     return (
                       <button
                         key={cmd.id}

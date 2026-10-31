@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Music2, Mic2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, Mic2 } from 'lucide-react';
 import { Track } from '../types';
 
 interface LyricsViewProps {
@@ -121,10 +121,20 @@ export function LyricsView({ isOpen, onClose, track, progress }: LyricsViewProps
     'Let the sounds carry you.',
   ];
 
-  // Calculate which line is "active" based on progress
-  const totalLines = lyrics.filter(l => l.trim()).length;
-  const activeLineIndex = Math.floor((progress / 100) * totalLines);
-  let nonEmptyCount = 0;
+  // Calculate which line should be active based on progress
+  // First, count non-empty lines
+  const nonEmptyLineIndices = useMemo(() => {
+    return lyrics.reduce<number[]>((acc, line, index) => {
+      if (line.trim() !== '') {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+  }, [lyrics]);
+
+  const totalNonEmptyLines = nonEmptyLineIndices.length;
+  const activeNonEmptyIndex = Math.floor((progress / 100) * totalNonEmptyLines);
+  const activeLineIndex = nonEmptyLineIndices[activeNonEmptyIndex] ?? -1;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -154,11 +164,8 @@ export function LyricsView({ isOpen, onClose, track, progress }: LyricsViewProps
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-1">
             {lyrics.map((line, i) => {
-              const isNonEmpty = line.trim() !== '';
-              if (isNonEmpty) nonEmptyCount++;
-              const currentNonEmpty = nonEmptyCount;
-              const isActive = isNonEmpty && currentNonEmpty === activeLineIndex + 1;
-              const isPast = isNonEmpty && currentNonEmpty <= activeLineIndex;
+              const isActive = i === activeLineIndex;
+              const isPast = nonEmptyLineIndices.indexOf(i) < activeNonEmptyIndex && line.trim() !== '';
               
               return (
                 <p

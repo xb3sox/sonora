@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { usePlayer } from '../context/PlayerContext';
 import { Moon, X, Check } from 'lucide-react';
 
 interface SleepTimerProps {
@@ -17,29 +18,23 @@ const timerOptions = [
 ];
 
 export function SleepTimer({ isOpen, onClose }: SleepTimerProps) {
+  const { state, togglePlay } = usePlayer();
   const [selected, setSelected] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const lastTrackIdRef = useRef<string | null>(null);
 
+  // Handle timer countdown
   useEffect(() => {
-    if (selected && selected !== 'track') {
-      const option = timerOptions.find(o => o.id === selected);
-      if (option) {
-        setRemaining(option.minutes * 60);
-      }
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [selected]);
-
-  useEffect(() => {
-    if (remaining && remaining > 0) {
+    if (remaining !== null && remaining > 0) {
       intervalRef.current = window.setInterval(() => {
         setRemaining(prev => {
           if (prev === null || prev <= 1) {
+            // Timer expired - pause playback
             if (intervalRef.current) clearInterval(intervalRef.current);
-            // Timer complete - would pause playback in real app
+            if (state.isPlaying) {
+              togglePlay();
+            }
             setSelected(null);
             return null;
           }
@@ -50,7 +45,48 @@ export function SleepTimer({ isOpen, onClose }: SleepTimerProps) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining !== null]);
+
+  // Handle "End of track" mode
+  useEffect(() => {
+    if (selected === 'track' && state.currentTrack) {
+      // Track changed - pause if we were waiting for end of previous track
+      if (lastTrackIdRef.current && lastTrackIdRef.current !== state.currentTrack.id) {
+        if (state.isPlaying) {
+          togglePlay();
+        }
+        setSelected(null);
+        lastTrackIdRef.current = null;
+      } else if (!lastTrackIdRef.current) {
+        // First track - start watching
+        lastTrackIdRef.current = state.currentTrack.id;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.currentTrack?.id, selected]);
+
+  const handleSelect = (optionId: string) => {
+    setSelected(optionId);
+    if (optionId !== 'track') {
+      const option = timerOptions.find(o => o.id === optionId);
+      if (option) {
+        setRemaining(option.minutes * 60);
+      }
+    } else {
+      setRemaining(null);
+      lastTrackIdRef.current = state.currentTrack?.id || null;
+    }
+  };
+
+  const handleCancel = () => {
+    setSelected(null);
+    setRemaining(null);
+    lastTrackIdRef.current = null;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
 
   const formatRemaining = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -88,11 +124,17 @@ export function SleepTimer({ isOpen, onClose }: SleepTimerProps) {
               </span>
             </div>
           )}
+          {selected === 'track' && remaining === null && (
+            <div className="mb-4 p-3 bg-sonora-warm rounded-lg flex items-center justify-between">
+              <span className="text-sm text-sonora-earth">Will pause at end of track</span>
+              <Moon size={16} className="text-sonora-accent" />
+            </div>
+          )}
           <div className="space-y-1">
             {timerOptions.map(option => (
               <button
                 key={option.id}
-                onClick={() => setSelected(option.id)}
+                onClick={() => handleSelect(option.id)}
                 className={`w-full flex items-center justify-between p-3 rounded-lg transition-calm text-left
                   ${selected === option.id
                     ? 'bg-sonora-warm text-sonora-bark'
@@ -106,7 +148,7 @@ export function SleepTimer({ isOpen, onClose }: SleepTimerProps) {
           </div>
           {selected && (
             <button
-              onClick={() => { setSelected(null); setRemaining(null); }}
+              onClick={handleCancel}
               className="mt-4 w-full text-sm text-sonora-stone hover:text-sonora-bark transition-calm"
             >
               Cancel timer

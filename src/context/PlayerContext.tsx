@@ -51,15 +51,36 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const intervalRef = useRef<number | null>(null);
 
+  // Auto-advance to next track when current track ends
   useEffect(() => {
     if (state.isPlaying && state.currentTrack) {
       intervalRef.current = window.setInterval(() => {
         setState(prev => {
           const increment = 100 / (prev.currentTrack?.duration || 300);
           const newProgress = prev.progress + increment;
+          
+          // Track ended - advance to next
           if (newProgress >= 100) {
-            return { ...prev, progress: 0 };
+            // Handle repeat modes
+            if (prev.repeat === 'one') {
+              return { ...prev, progress: 0 };
+            }
+            
+            // Move to next track in queue
+            if (prev.queue.length > 0) {
+              const [nextTrack, ...rest] = prev.queue;
+              return {
+                ...prev,
+                currentTrack: nextTrack,
+                queue: prev.repeat === 'all' ? [...rest, prev.currentTrack!] : rest,
+                progress: 0,
+              };
+            }
+            
+            // No more tracks in queue
+            return { ...prev, isPlaying: false, progress: 0 };
           }
+          
           return { ...prev, progress: newProgress };
         });
       }, 1000);

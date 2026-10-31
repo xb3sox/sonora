@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { tracks, artists } from '../data';
 import { Radio, Play, Pause, SkipForward, X } from 'lucide-react';
@@ -53,15 +53,17 @@ export function ArtistRadio({ artistId, onClose }: ArtistRadioProps) {
     }
 
     setRadioQueue(queue);
+    setCurrentIndex(0);
     
     // Start playing first track
     if (queue.length > 0) {
       const firstTrack = tracks.find(t => t.id === queue[0]);
       if (firstTrack) play(firstTrack);
     }
-  }, [artistId, artist]);
+  }, [artistId, artist, play]);
 
-  const handleNext = () => {
+  // Handle next track - defined before useEffect to avoid stale closure
+  const handleNext = useCallback(() => {
     const nextIndex = currentIndex + 1;
     if (nextIndex < radioQueue.length) {
       setCurrentIndex(nextIndex);
@@ -71,7 +73,7 @@ export function ArtistRadio({ artistId, onClose }: ArtistRadioProps) {
       // Regenerate queue if we've reached the end
       onClose();
     }
-  };
+  }, [currentIndex, radioQueue, play, onClose]);
 
   // Auto-advance to next track when current ends
   useEffect(() => {
@@ -84,8 +86,7 @@ export function ArtistRadio({ artistId, onClose }: ArtistRadioProps) {
     }, 1000);
 
     return () => clearInterval(checkProgress);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.currentTrack, state.isPlaying, state.progress, currentIndex, radioQueue]);
+  }, [state.currentTrack, state.isPlaying, state.progress, handleNext]);
 
   if (!artist) return null;
 
