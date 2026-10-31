@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { X, Mic2 } from 'lucide-react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { X, Share2, Quote, Music2, Languages } from 'lucide-react';
 import { Track } from '../types';
+import { getLyricsForTrack, getAlbumPalette, LyricLine } from '../data/lyrics';
+import { LyricCardModal } from './LyricCard';
 
 interface LyricsViewProps {
   isOpen: boolean;
@@ -9,191 +11,247 @@ interface LyricsViewProps {
   progress: number;
 }
 
-// Simulated lyrics for each track
-const trackLyrics: Record<string, string[]> = {
-  t1: [
-    'Morning light through the window pane',
-    'Dust motes dancing in golden rain',
-    'The kettle hums a quiet tune',
-    'Beneath the fading silver moon',
-    '',
-    'Time moves slow in quiet hours',
-    'Counting seconds, counting flowers',
-    'Every breath a gentle sound',
-    'In this stillness I am found',
-    '',
-    'Let the morning hold you close',
-    'Like a river, like a rose',
-    'Nothing needs to be said',
-    'Just the light above your head',
-  ],
-  t2: [
-    'Where the river bends so slow',
-    'Past the willows in a row',
-    'Water whispers ancient tales',
-    'Of the wind and sailing sails',
-    '',
-    'I have walked this path before',
-    'Through the mist and through the door',
-    'Every stone remembers me',
-    'Every branch of every tree',
-    '',
-    'River bend and river song',
-    'Carry me where I belong',
-    'In the current, in the calm',
-    'In the quiet, in the balm',
-  ],
-  t3: [
-    'Still waters run so deep tonight',
-    'Reflecting stars in silver light',
-    'No wind to stir the surface glass',
-    'No sound but time as it will pass',
-    '',
-    'I stand upon the quiet shore',
-    'And ask the water nothing more',
-    'For in its depth I find my peace',
-    'A stillness that will never cease',
-    '',
-    'Let me be the water\'s friend',
-    'From beginning unto end',
-    'Still and silent, deep and true',
-    'I am the stillness, you are too',
-  ],
-  t4: [
-    'Golden hour on the fields of light',
-    'Shadows stretching through the night',
-    'We have walked so far from home',
-    'Through the valleys, through the loam',
-    '',
-    'Every mile a memory made',
-    'Every song a debt repaid',
-    'To the earth that holds our feet',
-    'To the sky that makes us complete',
-    '',
-    'Fields of light and fields of grain',
-    'Sun and moon and sun again',
-    'We are wanderers, we are home',
-    'Wherever we may roam',
-  ],
-  t6: [
-    'Paper boats on morning tide',
-    'Carrying words we cannot hide',
-    'Folded carefully, sent with care',
-    'Into the ocean of the air',
-    '',
-    'Some will sink and some will sail',
-    'Some will tell a perfect tale',
-    'But each one carries something true',
-    'A piece of me, a piece of you',
-    '',
-    'Let them float and let them fly',
-    'Underneath the open sky',
-    'Paper boats and paper dreams',
-    'Nothing is quite what it seems',
-  ],
-  t8: [
-    'Autumn letters, written slow',
-    'In the amber evening glow',
-    'Words I could not say aloud',
-    'Folded in a paper cloud',
-    '',
-    'Dear friend, I hope this finds you well',
-    'With stories that I long to tell',
-    'The leaves are turning gold and red',
-    'And I am thinking of you instead',
-    '',
-    'Autumn letters, sent with care',
-    'Through the crisp and cooling air',
-    'May they find you, may they stay',
-    'Until I see you another day',
-  ],
-};
-
+/**
+ * Immersive lyrics view with kinetic typography, auto-scroll, and album-colored background
+ * Design inspired by Apple Music's lyrics experience and editorial typography
+ */
 export function LyricsView({ isOpen, onClose, track, progress }: LyricsViewProps) {
-  if (!isOpen || !track) return null;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [showCardModal, setShowCardModal] = useState(false);
+  const [activeLineIndex, setActiveLineIndex] = useState(0);
 
-  const lyrics = trackLyrics[track.id] || [
-    'Instrumental piece',
-    '',
-    'This composition speaks through',
-    'melody and texture alone.',
-    '',
-    'Let the sounds carry you.',
-  ];
+  const lyricsData = track ? getLyricsForTrack(track.id) : null;
+  const palette = track ? getAlbumPalette(track.albumId) : null;
 
-  // Calculate which line should be active based on progress
-  // First, count non-empty lines
+  // Calculate active line based on progress
   const nonEmptyLineIndices = useMemo(() => {
-    return lyrics.reduce<number[]>((acc, line, index) => {
-      if (line.trim() !== '') {
+    if (!lyricsData) return [];
+    return lyricsData.lines.reduce<number[]>((acc, line, index) => {
+      if (line.text.trim() !== '' && !line.pause) {
         acc.push(index);
       }
       return acc;
     }, []);
-  }, [lyrics]);
+  }, [lyricsData]);
 
-  const totalNonEmptyLines = nonEmptyLineIndices.length;
-  const activeNonEmptyIndex = Math.floor((progress / 100) * totalNonEmptyLines);
-  const activeLineIndex = nonEmptyLineIndices[activeNonEmptyIndex] ?? -1;
+  // Update active line when progress changes
+  useEffect(() => {
+    if (nonEmptyLineIndices.length === 0) return;
+    const totalNonEmpty = nonEmptyLineIndices.length;
+    const activeNonEmptyIndex = Math.min(
+      Math.floor((progress / 100) * totalNonEmpty),
+      totalNonEmpty - 1
+    );
+    setActiveLineIndex(nonEmptyLineIndices[activeNonEmptyIndex] ?? 0);
+  }, [progress, nonEmptyLineIndices]);
+
+  // Auto-scroll to active line
+  useEffect(() => {
+    if (!scrollRef.current || !lineRefs.current[activeLineIndex]) return;
+    
+    const container = scrollRef.current;
+    const activeElement = lineRefs.current[activeLineIndex];
+    if (!activeElement) return;
+
+    // Position active line at 40% from top for better visual balance
+    const containerHeight = container.clientHeight;
+    const elementTop = activeElement.offsetTop;
+    const elementHeight = activeElement.offsetHeight;
+    const targetScroll = elementTop - (containerHeight * 0.4) + (elementHeight / 2);
+
+    container.scrollTo({
+      top: Math.max(0, targetScroll),
+      behavior: 'smooth',
+    });
+  }, [activeLineIndex]);
+
+  // Close card modal when lyrics view closes
+  useEffect(() => {
+    if (!isOpen) setShowCardModal(false);
+  }, [isOpen]);
+
+  if (!isOpen || !track || !lyricsData || !palette) return null;
+
+  const activeLine = lyricsData.lines[activeLineIndex];
+  const progressPercent = progress;
+
+  // Mood-based background intensity
+  const moodIntensity = {
+    contemplative: 0.85,
+    hopeful: 0.75,
+    melancholic: 0.9,
+    ethereal: 0.8,
+    warm: 0.7,
+  }[lyricsData.mood] || 0.85;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-sonora-bark/50 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full sm:w-[480px] max-h-[80vh] bg-sonora-cream rounded-t-2xl sm:rounded-2xl shadow-2xl animate-slide-up flex flex-col overflow-hidden">
+    <>
+      <div className="fixed inset-0 z-50 flex flex-col overflow-hidden">
+        {/* Immersive background - blurred gradient from album colors */}
+        <div 
+          className="absolute inset-0 animate-gradient-shift"
+          style={{
+            background: `
+              radial-gradient(ellipse at 20% 30%, ${palette.primary}${Math.round(moodIntensity * 255).toString(16).padStart(2, '0')} 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 70%, ${palette.secondary}${Math.round(moodIntensity * 255).toString(16).padStart(2, '0')} 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 50%, ${palette.accent}40 0%, transparent 70%),
+              linear-gradient(180deg, #1A1612 0%, #2A2218 50%, #1A1612 100%)
+            `,
+          }}
+        />
+        
+        {/* Noise texture overlay for depth */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          }}
+        />
+
+        {/* Top gradient fade */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-sonora-night/80 to-transparent pointer-events-none z-10" />
+        
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-sonora-night/80 to-transparent pointer-events-none z-10" />
+
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-sonora-sand flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Mic2 size={18} className="text-sonora-bark" />
-            <h2 className="font-display text-lg font-semibold text-sonora-bark">Lyrics</h2>
+        <div className="relative z-20 flex items-center justify-between p-5 sm:p-6">
+          <div className="flex items-center gap-3 min-w-0">
+            <Quote size={18} className="text-sonora-cream/60 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-sonora-cream/50 uppercase tracking-wider">Lyrics</p>
+              <p className="text-sm text-sonora-cream font-medium truncate">{track.title}</p>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-sonora-warm text-sonora-stone hover:text-sonora-bark transition-calm"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCardModal(true)}
+              className="p-2 rounded-full bg-sonora-cream/10 hover:bg-sonora-cream/20 text-sonora-cream/80 transition-calm backdrop-blur-sm"
+              aria-label="Share lyric"
+              title="Share this lyric"
+            >
+              <Share2 size={16} />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full bg-sonora-cream/10 hover:bg-sonora-cream/20 text-sonora-cream/80 transition-calm backdrop-blur-sm"
+              aria-label="Close lyrics"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
-        {/* Track Info */}
-        <div className="px-5 py-3 border-b border-sonora-sand flex-shrink-0">
-          <p className="text-sm font-medium text-sonora-bark truncate">{track.title}</p>
-          <p className="text-xs text-sonora-stone truncate">{track.artist}</p>
+        {/* Progress indicator */}
+        <div className="relative z-20 px-6 sm:px-8">
+          <div className="h-0.5 bg-sonora-cream/10 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full animate-progress-pulse"
+              style={{
+                width: `${progressPercent}%`,
+                background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`,
+                transition: 'width 1s linear',
+              }}
+            />
+          </div>
         </div>
 
-        {/* Lyrics */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-1">
-            {lyrics.map((line, i) => {
-              const isActive = i === activeLineIndex;
-              const isPast = nonEmptyLineIndices.indexOf(i) < activeNonEmptyIndex && line.trim() !== '';
-              
+        {/* Lyrics content - scrollable */}
+        <div
+          ref={scrollRef}
+          className="relative z-20 flex-1 overflow-y-auto lyrics-scroll-container px-6 sm:px-12 md:px-20 py-12"
+        >
+          <div className="max-w-2xl mx-auto space-y-2">
+            {lyricsData.lines.map((line, index) => {
+              const isActive = index === activeLineIndex;
+              const activeIndexInNonEmpty = nonEmptyLineIndices.indexOf(activeLineIndex);
+              const lineIndexInNonEmpty = nonEmptyLineIndices.indexOf(index);
+              const isPast = lineIndexInNonEmpty !== -1 && lineIndexInNonEmpty < activeIndexInNonEmpty;
+              const isFuture = lineIndexInNonEmpty !== -1 && lineIndexInNonEmpty > activeIndexInNonEmpty;
+              const isEmpty = line.text.trim() === '' || line.pause;
+              const isSectionStart = line.section && index > 0 && lyricsData.lines[index - 1].section !== line.section;
+
+              // Opacity based on state
+              let opacity = 1;
+              if (isActive) opacity = 1;
+              else if (isPast) opacity = 0.25;
+              else if (isFuture) opacity = 0.45;
+              else if (isEmpty) opacity = 0;
+
+              // Emphasis class
+              const emphasisClass = 
+                line.emphasis === 'strong' ? 'lyric-line-strong' :
+                line.emphasis === 'medium' ? 'lyric-line-medium' :
+                'lyric-line-subtle';
+
               return (
-                <p
-                  key={i}
-                  className={`text-base leading-relaxed transition-all duration-500 ${
-                    line.trim() === '' ? 'h-4' : ''
-                  } ${
-                    isActive
-                      ? 'text-sonora-bark font-medium scale-105'
-                      : isPast
-                      ? 'text-sonora-stone'
-                      : 'text-sonora-stone/50'
-                  }`}
-                >
-                  {line || '\u00A0'}
-                </p>
+                <React.Fragment key={index}>
+                  {/* Section marker */}
+                  {isSectionStart && !isEmpty && (
+                    <div className="flex items-center gap-3 py-4 opacity-40">
+                      <div className="h-px flex-1 bg-sonora-cream/20" />
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-sonora-cream/60 font-medium">
+                        {line.section}
+                      </span>
+                      <div className="h-px flex-1 bg-sonora-cream/20" />
+                    </div>
+                  )}
+                  
+                  <div
+                    ref={(el) => { lineRefs.current[index] = el; }}
+                    className={`lyric-line ${emphasisClass} font-display ${
+                      isEmpty ? 'h-6' : 'py-1'
+                    } ${
+                      isActive ? 'animate-lyric-glow' : ''
+                    }`}
+                    style={{
+                      color: isActive 
+                        ? palette.accent 
+                        : isPast 
+                        ? `rgba(250, 248, 245, ${opacity})`
+                        : `rgba(250, 248, 245, ${opacity})`,
+                      transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                      filter: isPast ? 'blur(0.5px)' : 'blur(0)',
+                    }}
+                  >
+                    {!isEmpty && line.text}
+                  </div>
+                </React.Fragment>
               );
             })}
+            
+            {/* End spacer */}
+            <div className="h-40" />
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-sonora-sand text-center flex-shrink-0">
-          <p className="text-[10px] text-sonora-stone italic">
-            Lyrics provided by the artist. Sing along quietly.
-          </p>
+        {/* Footer with credits */}
+        <div className="relative z-20 px-6 pb-6 pt-2">
+          <div className="max-w-2xl mx-auto flex items-center justify-between text-xs text-sonora-cream/40">
+            <div className="flex items-center gap-2">
+              <Music2 size={12} />
+              <span>Written by {lyricsData.writer}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Languages size={12} />
+              <span className="uppercase tracking-wider">{lyricsData.language}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Lyric Card Modal */}
+      {showCardModal && activeLine && (
+        <LyricCardModal
+          isOpen={showCardModal}
+          onClose={() => setShowCardModal(false)}
+          track={track}
+          lyricLine={activeLine.text}
+          palette={palette}
+        />
+      )}
+    </>
   );
 }

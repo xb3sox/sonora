@@ -240,6 +240,7 @@ function AppContent() {
           onOpenAudioSettings={() => setAudioSettingsOpen(true)}
           onOpenShare={() => setShareOpen(true)}
           onOpenNowPlaying={() => setNowPlayingOpen(true)}
+          onOpenLyrics={() => setLyricsOpen(true)}
         />
         
         {/* Modals & Overlays */}

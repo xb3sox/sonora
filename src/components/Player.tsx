@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AlbumArt } from './AlbumArt';
+import { LyricsStrip } from './LyricsStrip';
 import { 
   Play, Pause, SkipBack, SkipForward, 
   Shuffle, Repeat, Repeat1, Volume2, VolumeX,
@@ -13,9 +14,10 @@ interface PlayerBarProps {
   onOpenAudioSettings: () => void;
   onOpenShare: () => void;
   onOpenNowPlaying?: () => void;
+  onOpenLyrics?: () => void;
 }
 
-export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare, onOpenNowPlaying }: PlayerBarProps) {
+export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare, onOpenNowPlaying, onOpenLyrics }: PlayerBarProps) {
   const { 
     state, togglePlay, next, previous, seek, setVolume, 
     toggleShuffle, toggleRepeat, toggleFavorite, isFavorite,
@@ -126,6 +128,8 @@ export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettin
           />
           <span className="text-[11px] text-sonora-stone w-10 tabular-nums">{formatTime(currentTrack.duration)}</span>
         </div>
+        {/* Lyrics Strip - shows current lyric line */}
+        <LyricsStrip onOpenLyrics={onOpenLyrics} />
       </div>
 
       {/* Right Controls */}

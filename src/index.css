@@ -152,6 +152,110 @@ input[type="range"]::-moz-range-thumb {
   animation: fade-in 0.15s ease-out;
 }
 
+/* Lyrics-specific animations */
+@keyframes lyric-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes lyric-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(196, 149, 106, 0.3); }
+  50% { text-shadow: 0 0 30px rgba(196, 149, 106, 0.5); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.animate-lyric-enter {
+  animation: lyric-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-lyric-glow {
+  animation: lyric-glow 3s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+.animate-progress-pulse {
+  animation: progress-pulse 2s ease-in-out infinite;
+}
+
+/* Lyrics typography */
+.lyric-line {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left center;
+}
+
+.lyric-line-strong {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.lyric-line-medium {
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.lyric-line-subtle {
+  font-size: 1.125rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+/* Lyrics scroll container */
+.lyrics-scroll-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+}
+
+/* Hide scrollbar but keep functionality */
+.lyrics-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.lyrics-scroll-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Tabular numbers for time display */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
