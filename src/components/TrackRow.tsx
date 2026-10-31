@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Track } from '../types';
 import { usePlayer } from '../context/PlayerContext';
+import { usePlayCount } from '../context/PlayCountContext';
 import { AlbumArt } from './AlbumArt';
 import { 
   Play, Pause, Clock, Heart, 
@@ -17,6 +18,7 @@ interface TrackRowProps {
 
 export function TrackRow({ track, index, showAlbum = true, onNavigate }: TrackRowProps) {
   const { state, play, togglePlay, toggleFavorite, isFavorite, addToQueue, addToast } = usePlayer();
+  const { getPlayCount } = usePlayCount();
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
@@ -24,6 +26,7 @@ export function TrackRow({ track, index, showAlbum = true, onNavigate }: TrackRo
   const isCurrentTrack = state.currentTrack?.id === track.id;
   const isPlaying = isCurrentTrack && state.isPlaying;
   const liked = isFavorite(track.id);
+  const playCount = getPlayCount(track.id);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -121,6 +124,13 @@ export function TrackRow({ track, index, showAlbum = true, onNavigate }: TrackRo
         >
           <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
         </button>
+
+        {/* Play Count */}
+        {playCount > 0 && (
+          <span className="text-[10px] text-sonora-stone hidden xl:block" title={`Played ${playCount} times`}>
+            {playCount}×
+          </span>
+        )}
 
         {/* Duration */}
         <span className="text-xs text-sonora-stone flex items-center gap-1 w-12 justify-end">

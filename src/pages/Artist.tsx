@@ -4,6 +4,8 @@ import { artists, albums, tracks } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
+import { FollowButton } from '../components/FollowButton';
+import { TipButton } from '../components/TipButton';
 import { 
   Play, ArrowLeft, Users, BookOpen
 } from 'lucide-react';
@@ -11,9 +13,10 @@ import {
 interface ArtistPageProps {
   artistId: string;
   onNavigate: (view: View, id?: string) => void;
+  onTipArtist?: (artistId: string) => void;
 }
 
-export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
+export function ArtistPage({ artistId, onNavigate, onTipArtist }: ArtistPageProps) {
   const { play, playAlbum } = usePlayer();
   const artist = artists.find(a => a.id === artistId);
   
@@ -53,12 +56,16 @@ export function ArtistPage({ artistId, onNavigate }: ArtistPageProps) {
               <span>·</span>
               <span>{artistTracks.length} tracks</span>
             </div>
-            <button
-              onClick={() => onNavigate('artist-story', artistId)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-sonora-warm hover:bg-sonora-sand rounded-full text-sm font-medium text-sonora-bark transition-calm"
-            >
-              <BookOpen size={14} /> The Story
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => onNavigate('artist-story', artistId)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-sonora-warm hover:bg-sonora-sand rounded-full text-sm font-medium text-sonora-bark transition-calm"
+              >
+                <BookOpen size={14} /> The Story
+              </button>
+              <FollowButton artistId={artistId} artistName={artist.name} />
+              {onTipArtist && <TipButton onClick={() => onTipArtist(artistId)} />}
+            </div>
           </div>
         </div>
       </div>

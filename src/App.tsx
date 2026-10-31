@@ -1,5 +1,7 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
+import { FollowProvider } from './context/FollowContext';
+import { PlayCountProvider, usePlayCount } from './context/PlayCountContext';
 import { Sidebar } from './components/Sidebar';
 import { PlayerBar } from './components/Player';
 import { MobileNav } from './components/MobileNav';
@@ -13,6 +15,9 @@ import { KeyboardShortcuts, useKeyboardShortcuts } from './components/KeyboardSh
 import { LyricsView } from './components/LyricsView';
 import { CreatePlaylistModal } from './components/CreatePlaylistModal';
 import { NowPlayingView } from './components/NowPlayingView';
+import { TipArtistModal } from './components/TipArtistModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -26,6 +31,7 @@ import { SettingsPage } from './pages/Settings';
 import { StatsPage } from './pages/Stats';
 import { HistoryPage } from './pages/History';
 import { View } from './types';
+import { artists } from './data';
 
 function AppContent() {
   const [hasOnboarded, setHasOnboarded] = useState(false);
@@ -41,11 +47,21 @@ function AppContent() {
   const [createPlaylistOpen, setCreatePlaylistOpen] = useState(false);
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
+  const [tipArtistOpen, setTipArtistOpen] = useState(false);
+  const [tipArtistId, setTipArtistId] = useState<string | null>(null);
   
   const { 
     state, showQueue, setShowQueue, togglePlay, next, previous, 
     setVolume, toggleShuffle, toggleRepeat, toggleFavorite 
   } = usePlayer();
+  const { incrementPlayCount } = usePlayCount();
+
+  // Increment play count when track changes
+  useEffect(() => {
+    if (state.currentTrack) {
+      incrementPlayCount(state.currentTrack.id);
+    }
+  }, [state.currentTrack?.id]);
 
   const handleNavigate = useCallback((view: View, id?: string) => {
     setCurrentView(view);
@@ -78,6 +94,7 @@ function AppContent() {
       setCreatePlaylistOpen(false);
       setNowPlayingOpen(false);
       setCreditsOpen(false);
+      setTipArtistOpen(false);
       setShowQueue(false);
     },
   }), [state, showQueue, togglePlay, next, previous, setVolume, toggleShuffle, toggleRepeat, toggleFavorite, setShowQueue, handleNavigate]);
@@ -100,7 +117,11 @@ function AppContent() {
       case 'search':
         return <SearchPage onNavigate={handleNavigate} />;
       case 'artist':
-        return <ArtistPage artistId={selectedId || ''} onNavigate={handleNavigate} />;
+        return <ArtistPage 
+          artistId={selectedId || ''} 
+          onNavigate={handleNavigate}
+          onTipArtist={(id) => { setTipArtistId(id); setTipArtistOpen(true); }}
+        />;
       case 'artist-story':
         return <ArtistStoryPage artistId={selectedId || ''} onNavigate={handleNavigate} />;
       case 'album':
@@ -203,7 +224,13 @@ function AppContent() {
           onOpenLyrics={() => { setNowPlayingOpen(false); setLyricsOpen(true); }}
           onOpenCredits={() => { setNowPlayingOpen(false); setCreditsOpen(true); }}
         />
+        <TipArtistModal
+          isOpen={tipArtistOpen}
+          onClose={() => setTipArtistOpen(false)}
+          artist={tipArtistId ? artists.find(a => a.id === tipArtistId) || null : null}
+        />
         <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
+        <OfflineIndicator />
       </div>
     </PlayerProvider>
   );
@@ -211,8 +238,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <PlayerProvider>
-      <AppContent />
-    </PlayerProvider>
+    <ErrorBoundary>
+      <PlayerProvider>
+        <FollowProvider>
+          <PlayCountProvider>
+            <AppContent />
+          </PlayCountProvider>
+        </FollowProvider>
+      </PlayerProvider>
+    </ErrorBoundary>
   );
 }
