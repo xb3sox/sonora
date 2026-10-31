@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { Track, PlayerState } from '../types';
 import { tracks } from '../data';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface Toast {
   id: string;
@@ -43,7 +44,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     repeat: 'off'
   });
 
-  const [favorites, setFavorites] = useState<Set<string>>(new Set(['t1', 't6', 't8']));
+  const [favoritesArray, setFavoritesArray] = useLocalStorage<string[]>('sonora-favorites', ['t1', 't6', 't8']);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set(favoritesArray));
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showQueue, setShowQueue] = useState(false);
 
@@ -175,9 +177,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         next.add(trackId);
         addToast('Added to Liked Tracks', 'success');
       }
+      // Persist to localStorage
+      setFavoritesArray(Array.from(next));
       return next;
     });
-  }, [addToast]);
+  }, [addToast, setFavoritesArray]);
 
   const isFavorite = useCallback((trackId: string) => {
     return favorites.has(trackId);

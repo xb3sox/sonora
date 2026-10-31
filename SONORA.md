@@ -213,3 +213,22 @@ Proprietary - Sonora Music Platform
 ---
 
 Built with care for listeners who want to discover less and love more.
+
+## Latest Updates (v1.1)
+- **Command Palette** (Cmd/Ctrl+K): Power user feature for quick navigation
+- **Local Storage Persistence**: Favorites and preferences survive page reloads
+- **Profile Page**: User account management with data export/import
+- **Help Page**: Comprehensive FAQ, keyboard shortcuts, and support contacts
+- **Enhanced Error Handling**: Production-ready error boundaries
+- **Offline Detection**: Visual indicators for connection status
+- **Loading Skeletons**: Improved perceived performance
+- **Artist Support**: Tipping and follow functionality
+- **Play Count Tracking**: See your listening history per track
+- **Mobile Now Playing**: Full-screen player with swipe gestures
+
+## Architecture Highlights
+- **35+ Components**: Modular, reusable UI components
+- **3 Context Providers**: Player, Follow, PlayCount state management
+- **Custom Hooks**: useLocalStorage, useSessionStorage for persistence
+- **Type-Safe**: Full TypeScript coverage across all files
+- **Zero Dependencies**: Everything built in-house for maximum control

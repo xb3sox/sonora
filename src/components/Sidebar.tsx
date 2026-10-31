@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import { 
   Home, Compass, Library, Search, Settings, Headphones,
-  Music2, Disc3, Heart, Menu, X, BarChart3, Clock
+  Music2, Disc3, Heart, Menu, X, BarChart3, Clock, User, HelpCircle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -126,21 +126,42 @@ export function Sidebar({ currentView, onNavigate, isOpen, onToggle }: SidebarPr
           </div>
         </nav>
 
-        {/* Settings */}
-        <div className="p-3 border-t border-sonora-sand">
-          <button
-            onClick={() => { onNavigate('settings'); onToggle(); }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-calm
-              ${currentView === 'settings'
-                ? 'bg-sonora-bark text-sonora-cream'
-                : 'text-sonora-earth hover:bg-sonora-sand hover:text-sonora-bark'
-              }`}
-          >
-            <Settings size={20} />
-            Settings & Privacy
-          </button>
-        </div>
-      </aside>
+      {/* Settings & Profile */}
+      <div className="p-3 border-t border-sonora-sand space-y-1">
+        <button
+          onClick={() => { onNavigate('profile'); onToggle(); }}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-calm
+            ${currentView === 'profile'
+              ? 'bg-sonora-bark text-sonora-cream'
+              : 'text-sonora-earth hover:bg-sonora-sand hover:text-sonora-bark'
+            }`}
+        >
+          <User size={20} />
+          Profile
+        </button>
+        <button
+          onClick={() => { onNavigate('settings'); onToggle(); }}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-calm
+            ${currentView === 'settings'
+              ? 'bg-sonora-bark text-sonora-cream'
+              : 'text-sonora-earth hover:bg-sonora-sand hover:text-sonora-bark'
+            }`}
+        >
+          <Settings size={20} />
+          Settings & Privacy
+        </button>
+        <button
+          onClick={() => { onNavigate('help'); onToggle(); }}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-calm
+            ${currentView === 'help'
+              ? 'bg-sonora-bark text-sonora-cream'
+              : 'text-sonora-earth hover:bg-sonora-sand hover:text-sonora-bark'
+            }`}
+        >
+          <HelpCircle size={20} />
+          Help
+        </button>
+      </div>      </aside>
     </>
   );
 }

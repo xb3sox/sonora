@@ -30,6 +30,9 @@ import { DeepListeningPage } from './pages/DeepListening';
 import { SettingsPage } from './pages/Settings';
 import { StatsPage } from './pages/Stats';
 import { HistoryPage } from './pages/History';
+import { ProfilePage } from './pages/Profile';
+import { HelpPage } from './pages/Help';
+import { CommandPalette } from './components/CommandPalette';
 import { View } from './types';
 import { artists } from './data';
 
@@ -49,6 +52,7 @@ function AppContent() {
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [tipArtistOpen, setTipArtistOpen] = useState(false);
   const [tipArtistId, setTipArtistId] = useState<string | null>(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   
   const { 
     state, showQueue, setShowQueue, togglePlay, next, previous, 
@@ -70,6 +74,18 @@ function AppContent() {
   }, []);
 
   const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
+
+  // Command palette shortcut (Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Keyboard shortcuts
   const shortcutHandlers = useMemo(() => ({
@@ -95,6 +111,7 @@ function AppContent() {
       setNowPlayingOpen(false);
       setCreditsOpen(false);
       setTipArtistOpen(false);
+      setCommandPaletteOpen(false);
       setShowQueue(false);
     },
   }), [state, showQueue, togglePlay, next, previous, setVolume, toggleShuffle, toggleRepeat, toggleFavorite, setShowQueue, handleNavigate]);
@@ -136,6 +153,10 @@ function AppContent() {
         return <StatsPage />;
       case 'history':
         return <HistoryPage onNavigate={handleNavigate} />;
+      case 'profile':
+        return <ProfilePage />;
+      case 'help':
+        return <HelpPage />;
       default:
         return <HomePage onNavigate={handleNavigate} />;
     }
@@ -230,6 +251,11 @@ function AppContent() {
           artist={tipArtistId ? artists.find(a => a.id === tipArtistId) || null : null}
         />
         <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
+        <CommandPalette 
+          isOpen={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+          onNavigate={handleNavigate}
+        />
         <OfflineIndicator />
       </div>
     </PlayerProvider>
