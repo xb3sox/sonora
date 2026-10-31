@@ -1,23 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AlbumArt } from './AlbumArt';
 import { 
   Play, Pause, SkipBack, SkipForward, 
   Shuffle, Repeat, Repeat1, Volume2, VolumeX,
-  Headphones, ListMusic, Heart
+  Headphones, ListMusic, Heart, Moon, Sliders, Share2, MoreHorizontal
 } from 'lucide-react';
 
 interface PlayerBarProps {
   onDeepListening: () => void;
+  onOpenSleepTimer: () => void;
+  onOpenAudioSettings: () => void;
+  onOpenShare: () => void;
 }
 
-export function PlayerBar({ onDeepListening }: PlayerBarProps) {
+export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare }: PlayerBarProps) {
   const { 
     state, togglePlay, next, previous, seek, setVolume, 
     toggleShuffle, toggleRepeat, toggleFavorite, isFavorite,
     setShowQueue
   } = usePlayer();
   const { currentTrack, isPlaying, progress, volume, shuffle, repeat, queue } = state;
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -118,7 +122,31 @@ export function PlayerBar({ onDeepListening }: PlayerBarProps) {
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-2 w-48 justify-end">
+      <div className="flex items-center gap-1.5 sm:gap-2 w-auto sm:w-56 justify-end">
+        <button
+          onClick={onOpenShare}
+          className="p-1.5 text-sonora-stone hover:text-sonora-earth transition-calm hidden md:block"
+          aria-label="Share"
+          title="Share"
+        >
+          <Share2 size={16} />
+        </button>
+        <button
+          onClick={onOpenSleepTimer}
+          className="p-1.5 text-sonora-stone hover:text-sonora-earth transition-calm hidden sm:block"
+          aria-label="Sleep timer"
+          title="Sleep timer"
+        >
+          <Moon size={16} />
+        </button>
+        <button
+          onClick={onOpenAudioSettings}
+          className="p-1.5 text-sonora-stone hover:text-sonora-earth transition-calm hidden sm:block"
+          aria-label="Audio settings"
+          title="Audio settings"
+        >
+          <Sliders size={16} />
+        </button>
         <button
           onClick={() => setShowQueue(true)}
           className={`p-1.5 rounded-full transition-calm relative
@@ -126,7 +154,7 @@ export function PlayerBar({ onDeepListening }: PlayerBarProps) {
           aria-label="View queue"
           title="Queue"
         >
-          <ListMusic size={18} />
+          <ListMusic size={16} />
           {queue.length > 0 && (
             <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-sonora-accent text-white text-[8px] font-bold rounded-full flex items-center justify-center">
               {queue.length}
@@ -135,13 +163,13 @@ export function PlayerBar({ onDeepListening }: PlayerBarProps) {
         </button>
         <button
           onClick={onDeepListening}
-          className="p-1.5 text-sonora-stone hover:text-sonora-bark transition-calm hidden sm:block"
+          className="p-1.5 text-sonora-stone hover:text-sonora-bark transition-calm hidden md:block"
           aria-label="Deep Listening mode"
           title="Deep Listening"
         >
-          <Headphones size={18} />
+          <Headphones size={16} />
         </button>
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <button
             onClick={() => setVolume(volume === 0 ? 0.75 : 0)}
             className="p-1.5 text-sonora-stone hover:text-sonora-earth transition-calm"

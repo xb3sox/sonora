@@ -67,4 +67,4 @@ export interface PlayerState {
   repeat: 'off' | 'one' | 'all';
 }
 
-export type View = 'home' | 'explore' | 'library' | 'search' | 'artist' | 'album' | 'playlist' | 'deep-listening' | 'settings';
+export type View = 'home' | 'explore' | 'library' | 'search' | 'artist' | 'album' | 'playlist' | 'deep-listening' | 'settings' | 'stats';

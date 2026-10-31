@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import { 
   Home, Compass, Library, Search, Settings, Headphones,
-  Music2, Disc3, Heart, Menu, X
+  Music2, Disc3, Heart, Menu, X, BarChart3
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -18,6 +18,7 @@ export function Sidebar({ currentView, onNavigate, isOpen, onToggle }: SidebarPr
     { view: 'explore', icon: <Compass size={20} />, label: 'Explore' },
     { view: 'library', icon: <Library size={20} />, label: 'Library' },
     { view: 'search', icon: <Search size={20} />, label: 'Search' },
+    { view: 'stats', icon: <BarChart3 size={20} />, label: 'Your Stats' },
   ];
 
   const libraryItems = [

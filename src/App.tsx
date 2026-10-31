@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
 import { Sidebar } from './components/Sidebar';
 import { PlayerBar } from './components/Player';
+import { MobileNav } from './components/MobileNav';
 import { ToastContainer } from './components/Toast';
 import { QueueView } from './components/QueueView';
+import { Welcome } from './components/Welcome';
+import { SleepTimer } from './components/SleepTimer';
+import { AudioSettings } from './components/AudioSettings';
+import { ShareModal } from './components/ShareModal';
+import { KeyboardShortcuts, useKeyboardShortcuts } from './components/KeyboardShortcuts';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -13,21 +19,63 @@ import { AlbumPage } from './pages/Album';
 import { PlaylistPage } from './pages/Playlist';
 import { DeepListeningPage } from './pages/DeepListening';
 import { SettingsPage } from './pages/Settings';
+import { StatsPage } from './pages/Stats';
 import { View } from './types';
 
 function AppContent() {
+  const [hasOnboarded, setHasOnboarded] = useState(false);
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { showQueue, setShowQueue } = usePlayer();
+  const [searchInputRef, setSearchInputRef] = useState<HTMLInputElement | null>(null);
+  
+  // Modals
+  const [sleepTimerOpen, setSleepTimerOpen] = useState(false);
+  const [audioSettingsOpen, setAudioSettingsOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  
+  const { 
+    state, showQueue, setShowQueue, togglePlay, next, previous, 
+    setVolume, toggleShuffle, toggleRepeat, toggleFavorite 
+  } = usePlayer();
 
-  const handleNavigate = (view: View, id?: string) => {
+  const handleNavigate = useCallback((view: View, id?: string) => {
     setCurrentView(view);
     setSelectedId(id);
     setSidebarOpen(false);
-  };
+  }, []);
 
-  const toggleSidebar = () => setSidebarOpen(prev => !prev);
+  const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
+
+  // Keyboard shortcuts
+  const shortcutHandlers = useMemo(() => ({
+    onTogglePlay: () => { if (state.currentTrack) togglePlay(); },
+    onNext: () => next(),
+    onPrevious: () => previous(),
+    onVolumeUp: () => setVolume(Math.min(1, state.volume + 0.1)),
+    onVolumeDown: () => setVolume(Math.max(0, state.volume - 0.1)),
+    onMute: () => setVolume(state.volume === 0 ? 0.75 : 0),
+    onLike: () => { if (state.currentTrack) toggleFavorite(state.currentTrack.id); },
+    onShuffle: () => toggleShuffle(),
+    onRepeat: () => toggleRepeat(),
+    onQueue: () => setShowQueue(!showQueue),
+    onDeepListening: () => handleNavigate('deep-listening'),
+    onFocusSearch: () => handleNavigate('search'),
+    onShowHelp: () => {},
+    onClose: () => {
+      setSleepTimerOpen(false);
+      setAudioSettingsOpen(false);
+      setShareOpen(false);
+      setShowQueue(false);
+    },
+  }), [state, showQueue, togglePlay, next, previous, setVolume, toggleShuffle, toggleRepeat, toggleFavorite, setShowQueue, handleNavigate]);
+
+  const { showHelp, setShowHelp } = useKeyboardShortcuts(shortcutHandlers);
+
+  // Welcome screen
+  if (!hasOnboarded) {
+    return <Welcome onComplete={() => setHasOnboarded(true)} />;
+  }
 
   const renderPage = () => {
     switch (currentView) {
@@ -49,6 +97,8 @@ function AppContent() {
         return <DeepListeningPage onNavigate={handleNavigate} />;
       case 'settings':
         return <SettingsPage />;
+      case 'stats':
+        return <StatsPage />;
       default:
         return <HomePage onNavigate={handleNavigate} />;
     }
@@ -62,6 +112,7 @@ function AppContent() {
           <DeepListeningPage onNavigate={handleNavigate} />
         </div>
         <ToastContainer />
+        <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
       </div>
     );
   }
@@ -69,7 +120,7 @@ function AppContent() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-sonora-cream">
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar (desktop) */}
         <Sidebar 
           currentView={currentView} 
           onNavigate={handleNavigate}
@@ -78,19 +129,33 @@ function AppContent() {
         />
         
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto pb-16 lg:pb-0">
           {renderPage()}
         </main>
       </div>
       
+      {/* Mobile Bottom Nav */}
+      <MobileNav currentView={currentView} onNavigate={handleNavigate} />
+      
       {/* Player Bar */}
-      <PlayerBar onDeepListening={() => handleNavigate('deep-listening')} />
+      <PlayerBar 
+        onDeepListening={() => handleNavigate('deep-listening')}
+        onOpenSleepTimer={() => setSleepTimerOpen(true)}
+        onOpenAudioSettings={() => setAudioSettingsOpen(true)}
+        onOpenShare={() => setShareOpen(true)}
+      />
       
-      {/* Toast Notifications */}
+      {/* Modals & Overlays */}
       <ToastContainer />
-      
-      {/* Queue View */}
       {showQueue && <QueueView onClose={() => setShowQueue(false)} />}
+      <SleepTimer isOpen={sleepTimerOpen} onClose={() => setSleepTimerOpen(false)} />
+      <AudioSettings isOpen={audioSettingsOpen} onClose={() => setAudioSettingsOpen(false)} />
+      <ShareModal 
+        isOpen={shareOpen} 
+        onClose={() => setShareOpen(false)} 
+        track={state.currentTrack} 
+      />
+      <KeyboardShortcuts isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }
@@ -98,6 +163,13 @@ function AppContent() {
 export default function App() {
   return (
     <PlayerProvider>
+      {/* Accessibility: Skip to content link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-sonora-bark focus:text-sonora-cream focus:rounded-lg focus:text-sm"
+      >
+        Skip to content
+      </a>
       <AppContent />
     </PlayerProvider>
   );

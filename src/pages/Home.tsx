@@ -6,7 +6,7 @@ import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
 import { 
   Play, Headphones, Sparkles, ArrowRight, 
-  Disc3
+  Disc3, BarChart3
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -159,6 +159,61 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <span className="mt-4 inline-flex items-center gap-1 text-sm text-sonora-accent font-medium">
             Begin session <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </span>
+        </button>
+      </section>
+
+      {/* New Releases */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl font-semibold text-sonora-bark">New Releases</h2>
+          <button 
+            onClick={() => onNavigate('explore')}
+            className="text-sm text-sonora-stone hover:text-sonora-bark transition-calm flex items-center gap-1"
+          >
+            Browse all <ArrowRight size={14} />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {albums.slice(0, 4).map(album => (
+            <button
+              key={album.id}
+              onClick={() => onNavigate('album', album.id)}
+              className="group text-left"
+            >
+              <div className="aspect-square rounded-xl mb-3 relative overflow-hidden shadow-md">
+                <AlbumArt type="album" id={album.id} size="xl" className="w-full h-full" />
+                <div className="absolute top-2 left-2">
+                  <span className="text-[9px] font-semibold text-sonora-cream bg-sonora-bark/70 backdrop-blur px-2 py-0.5 rounded-full">
+                    NEW
+                  </span>
+                </div>
+                <div className="absolute inset-0 bg-sonora-bark/0 group-hover:bg-sonora-bark/10 transition-calm flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-sonora-bark text-sonora-cream flex items-center justify-center opacity-0 group-hover:opacity-100 transition-calm shadow-lg">
+                    <Play size={16} className="ml-0.5" />
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm font-medium text-sonora-bark truncate">{album.title}</p>
+              <p className="text-xs text-sonora-stone truncate">{album.artist}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Your Stats Link */}
+      <section className="mb-8">
+        <button
+          onClick={() => onNavigate('stats')}
+          className="w-full bg-sonora-warm rounded-2xl p-6 text-left hover:bg-sonora-sand transition-calm group flex items-center gap-4"
+        >
+          <div className="w-12 h-12 rounded-full bg-sonora-accent/20 flex items-center justify-center flex-shrink-0">
+            <BarChart3 size={20} className="text-sonora-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-sonora-bark">Your Listening Stats</p>
+            <p className="text-xs text-sonora-stone">1,847 minutes · 312 tracks · 14 day streak</p>
+          </div>
+          <ArrowRight size={16} className="text-sonora-stone group-hover:text-sonora-bark transition-calm group-hover:translate-x-1" />
         </button>
       </section>
     </div>

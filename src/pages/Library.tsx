@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { playlists, albums, tracks } from '../data';
 import { View } from '../types';
@@ -6,7 +6,7 @@ import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
 import { 
   Play, Music2, Disc3, Heart, 
-  ListMusic, Grid3X3, List
+  ListMusic, Grid3X3, List, ArrowUpDown, Check
 } from 'lucide-react';
 
 interface LibraryPageProps {
@@ -17,6 +17,33 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
   const { play, playAlbum, favorites } = usePlayer();
   const [tab, setTab] = useState<'playlists' | 'albums' | 'tracks' | 'liked'>('playlists');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<'title' | 'artist' | 'album' | 'duration'>('title');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+
+  const sortedTracks = useMemo(() => {
+    const sorted = [...tracks].sort((a, b) => {
+      switch (sortBy) {
+        case 'title': return a.title.localeCompare(b.title);
+        case 'artist': return a.artist.localeCompare(b.artist);
+        case 'album': return a.album.localeCompare(b.album);
+        case 'duration': return a.duration - b.duration;
+        default: return 0;
+      }
+    });
+    return sorted;
+  }, [sortBy]);
+
+  const sortedLiked = useMemo(() => {
+    return tracks.filter(t => favorites.has(t.id)).sort((a, b) => {
+      switch (sortBy) {
+        case 'title': return a.title.localeCompare(b.title);
+        case 'artist': return a.artist.localeCompare(b.artist);
+        case 'album': return a.album.localeCompare(b.album);
+        case 'duration': return a.duration - b.duration;
+        default: return 0;
+      }
+    });
+  }, [sortBy, favorites]);
 
   const tabs = [
     { id: 'playlists' as const, label: 'Playlists', icon: <ListMusic size={16} /> },
@@ -25,7 +52,7 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
     { id: 'liked' as const, label: 'Liked', icon: <Heart size={16} /> },
   ];
 
-  const likedTracks = tracks.filter(t => favorites.has(t.id));
+
 
   return (
     <div className="p-6 sm:p-8 max-w-6xl mx-auto">
@@ -51,27 +78,62 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-sonora-sand pb-3 overflow-x-auto">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-calm whitespace-nowrap
-              ${tab === t.id
-                ? 'bg-sonora-warm text-sonora-bark'
-                : 'text-sonora-stone hover:text-sonora-earth'
-              }`}
-          >
-            {t.icon}
-            {t.label}
-            {t.id === 'liked' && favorites.size > 0 && (
-              <span className="text-[10px] bg-sonora-accent/20 text-sonora-accent px-1.5 py-0.5 rounded-full">
-                {favorites.size}
-              </span>
+      {/* Tabs + Sort */}
+      <div className="flex items-center justify-between mb-6 border-b border-sonora-sand pb-3">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-calm whitespace-nowrap
+                ${tab === t.id
+                  ? 'bg-sonora-warm text-sonora-bark'
+                  : 'text-sonora-stone hover:text-sonora-earth'
+                }`}
+            >
+              {t.icon}
+              {t.label}
+              {t.id === 'liked' && favorites.size > 0 && (
+                <span className="text-[10px] bg-sonora-accent/20 text-sonora-accent px-1.5 py-0.5 rounded-full">
+                  {favorites.size}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        {(tab === 'tracks' || tab === 'liked') && (
+          <div className="relative">
+            <button
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-sonora-stone hover:text-sonora-bark hover:bg-sonora-warm transition-calm"
+            >
+              <ArrowUpDown size={12} />
+              <span className="hidden sm:inline">{sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}</span>
+            </button>
+            {showSortMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-sonora-sand py-1 min-w-[140px] z-20 animate-fade-in">
+                  {[
+                    { id: 'title' as const, label: 'Title' },
+                    { id: 'artist' as const, label: 'Artist' },
+                    { id: 'album' as const, label: 'Album' },
+                    { id: 'duration' as const, label: 'Duration' },
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => { setSortBy(option.id); setShowSortMenu(false); }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm text-sonora-bark hover:bg-sonora-warm transition-calm"
+                    >
+                      {option.label}
+                      {sortBy === option.id && <Check size={14} className="text-sonora-sage" />}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
-          </button>
-        ))}
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -155,7 +217,7 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
 
       {tab === 'tracks' && (
         <div className="space-y-0.5">
-          {tracks.map((track, i) => (
+          {sortedTracks.map((track, i) => (
             <TrackRow 
               key={track.id} 
               track={track} 
@@ -167,9 +229,9 @@ export function LibraryPage({ onNavigate }: LibraryPageProps) {
       )}
 
       {tab === 'liked' && (
-        likedTracks.length > 0 ? (
+        sortedLiked.length > 0 ? (
           <div className="space-y-0.5">
-            {likedTracks.map((track, i) => (
+            {sortedLiked.map((track, i) => (
               <TrackRow 
                 key={track.id} 
                 track={track} 

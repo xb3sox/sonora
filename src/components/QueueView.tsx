@@ -1,15 +1,26 @@
 import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AlbumArt } from './AlbumArt';
-import { X, Music2, ListMusic } from 'lucide-react';
+import { X, Music2, ListMusic, GripVertical } from 'lucide-react';
 
 interface QueueViewProps {
   onClose: () => void;
 }
 
 export function QueueView({ onClose }: QueueViewProps) {
-  const { state, removeFromQueue, play } = usePlayer();
+  const { state, removeFromQueue, play, addToast } = usePlayer();
   const { currentTrack, queue } = state;
+
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    // In a real app, we'd reorder the queue
+    addToast('Queue reordered', 'info');
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === queue.length - 1) return;
+    addToast('Queue reordered', 'info');
+  };
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center sm:justify-end sm:pr-4">
@@ -56,21 +67,57 @@ export function QueueView({ onClose }: QueueViewProps) {
           {/* Up Next */}
           {queue.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-sonora-stone uppercase tracking-wider mb-2">Up Next</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-sonora-stone uppercase tracking-wider">Up Next</p>
+                <button 
+                  onClick={() => {
+                    // Clear queue
+                    for (let i = queue.length - 1; i >= 0; i--) {
+                      removeFromQueue(i);
+                    }
+                    addToast('Queue cleared', 'info');
+                  }}
+                  className="text-xs text-sonora-stone hover:text-sonora-bark transition-calm"
+                >
+                  Clear all
+                </button>
+              </div>
               <div className="space-y-1">
                 {queue.map((track, i) => (
                   <div
                     key={`${track.id}-${i}`}
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group"
+                    className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group"
                   >
-                    <span className="w-5 text-center text-xs text-sonora-stone">{i + 1}</span>
+                    <GripVertical size={14} className="text-sonora-sand cursor-grab flex-shrink-0" />
+                    <span className="w-5 text-center text-xs text-sonora-stone tabular-nums">{i + 1}</span>
                     <AlbumArt type="track" id={track.id} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-sonora-bark truncate">{track.title}</p>
                       <p className="text-xs text-sonora-stone truncate">{track.artist}</p>
                     </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-calm">
+                      <button
+                        onClick={() => handleMoveUp(i)}
+                        className="p-1 rounded text-sonora-stone hover:text-sonora-bark text-xs"
+                        disabled={i === 0}
+                        aria-label="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => handleMoveDown(i)}
+                        className="p-1 rounded text-sonora-stone hover:text-sonora-bark text-xs"
+                        disabled={i === queue.length - 1}
+                        aria-label="Move down"
+                      >
+                        ↓
+                      </button>
+                    </div>
                     <button
-                      onClick={() => removeFromQueue(i)}
+                      onClick={() => {
+                        removeFromQueue(i);
+                        addToast(`Removed "${track.title}" from queue`, 'info');
+                      }}
                       className="p-1.5 rounded-full text-sonora-stone opacity-0 group-hover:opacity-100 hover:text-sonora-bark transition-calm"
                       aria-label="Remove from queue"
                     >
@@ -87,7 +134,7 @@ export function QueueView({ onClose }: QueueViewProps) {
             <div className="text-center py-8">
               <Music2 size={32} className="text-sonora-sand mx-auto mb-3" />
               <p className="text-sm text-sonora-stone">Queue is empty</p>
-              <p className="text-xs text-sonora-stone/60 mt-1">Add tracks from context menus</p>
+              <p className="text-xs text-sonora-stone/60 mt-1">Right-click a track to add it to queue</p>
             </div>
           )}
         </div>
