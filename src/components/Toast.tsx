@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Check, Info, AlertCircle, X } from 'lucide-react';
+import { Check, Info, AlertCircle } from 'lucide-react';
 
 export function ToastContainer() {
   const { toasts } = usePlayer();

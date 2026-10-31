@@ -14,7 +14,7 @@ interface ArtistRadioProps {
  * Similar to Spotify's "Artist Radio" or Pandora's stations
  */
 export function ArtistRadio({ artistId, onClose }: ArtistRadioProps) {
-  const { play, state, togglePlay, next } = usePlayer();
+  const { play, state, togglePlay } = usePlayer();
   const [radioQueue, setRadioQueue] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -61,19 +61,6 @@ export function ArtistRadio({ artistId, onClose }: ArtistRadioProps) {
     }
   }, [artistId, artist]);
 
-  // Auto-advance to next track when current ends
-  useEffect(() => {
-    if (!state.currentTrack || !state.isPlaying) return;
-
-    const checkProgress = setInterval(() => {
-      if (state.progress >= 99) {
-        handleNext();
-      }
-    }, 1000);
-
-    return () => clearInterval(checkProgress);
-  }, [state.currentTrack, state.isPlaying, state.progress]);
-
   const handleNext = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex < radioQueue.length) {
@@ -85,6 +72,20 @@ export function ArtistRadio({ artistId, onClose }: ArtistRadioProps) {
       onClose();
     }
   };
+
+  // Auto-advance to next track when current ends
+  useEffect(() => {
+    if (!state.currentTrack || !state.isPlaying) return;
+
+    const checkProgress = setInterval(() => {
+      if (state.progress >= 99) {
+        handleNext();
+      }
+    }, 1000);
+
+    return () => clearInterval(checkProgress);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.currentTrack, state.isPlaying, state.progress, currentIndex, radioQueue]);
 
   if (!artist) return null;
 

@@ -11,7 +11,7 @@ import {
 
 interface PlaylistPageProps {
   playlistId: string;
-  onNavigate: (view: View) => void;
+  onNavigate: (view: View, id?: string) => void;
 }
 
 export function PlaylistPage({ playlistId, onNavigate }: PlaylistPageProps) {
@@ -74,7 +74,7 @@ export function PlaylistPage({ playlistId, onNavigate }: PlaylistPageProps) {
       <div className="px-6 sm:px-8 pb-8">
         <div className="space-y-0.5">
           {playlistTracks.map((track, i) => (
-            track && <TrackRow key={track.id} track={track} index={i} onNavigate={onNavigate as any} />
+            track && <TrackRow key={track.id} track={track} index={i} onNavigate={onNavigate} />
           ))}
         </div>
       </div>

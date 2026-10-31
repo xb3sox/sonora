@@ -20,11 +20,7 @@ import { NowPlayingView } from './components/NowPlayingView';
 import { TipArtistModal } from './components/TipArtistModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { AudioVisualizer } from './components/AudioVisualizer';
 import { ArtistRadio } from './components/ArtistRadio';
-import { PlaybackSpeedControl } from './components/PlaybackSpeedControl';
-import { SearchFilters } from './components/SearchFilters';
-import { AudioQualityIndicator } from './components/AudioQualityIndicator';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -44,7 +40,13 @@ import { View } from './types';
 import { artists } from './data';
 
 function AppContent() {
-  const [hasOnboarded, setHasOnboarded] = useState(false);
+  const [hasOnboarded, setHasOnboarded] = useState(() => {
+    try {
+      return localStorage.getItem('sonora-onboarded') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,15 +58,12 @@ function AppContent() {
   const [lyricsOpen, setLyricsOpen] = useState(false);
   const [createPlaylistOpen, setCreatePlaylistOpen] = useState(false);
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
-  const [creditsOpen, setCreditsOpen] = useState(false);
   const [tipArtistOpen, setTipArtistOpen] = useState(false);
   const [tipArtistId, setTipArtistId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [artistRadioOpen, setArtistRadioOpen] = useState(false);
   const [artistRadioId, setArtistRadioId] = useState<string | null>(null);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [audioQuality] = useState<'standard' | 'high' | 'lossless'>('lossless');
-
+  
   // Initialize Media Session API and document title updates
   useMediaSession();
   useDocumentTitle();
@@ -80,6 +79,7 @@ function AppContent() {
     if (state.currentTrack) {
       incrementPlayCount(state.currentTrack.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.currentTrack?.id]);
 
   const handleNavigate = useCallback((view: View, id?: string) => {
@@ -124,7 +124,6 @@ function AppContent() {
       setLyricsOpen(false);
       setCreatePlaylistOpen(false);
       setNowPlayingOpen(false);
-      setCreditsOpen(false);
       setTipArtistOpen(false);
       setCommandPaletteOpen(false);
       setShowQueue(false);
@@ -133,9 +132,18 @@ function AppContent() {
 
   const { showHelp, setShowHelp } = useKeyboardShortcuts(shortcutHandlers);
 
+  const handleCompleteOnboarding = useCallback(() => {
+    setHasOnboarded(true);
+    try {
+      localStorage.setItem('sonora-onboarded', 'true');
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Welcome screen
   if (!hasOnboarded) {
-    return <Welcome onComplete={() => setHasOnboarded(true)} />;
+    return <Welcome onComplete={handleCompleteOnboarding} />;
   }
 
   const renderPage = () => {
@@ -198,7 +206,7 @@ function AppContent() {
   }
 
   return (
-    <PlayerProvider>
+    <>
       {/* Accessibility: Skip to content link */}
       <a
         href="#main-content"
@@ -259,7 +267,7 @@ function AppContent() {
           onClose={() => setNowPlayingOpen(false)}
           onOpenQueue={() => { setNowPlayingOpen(false); setShowQueue(true); }}
           onOpenLyrics={() => { setNowPlayingOpen(false); setLyricsOpen(true); }}
-          onOpenCredits={() => { setNowPlayingOpen(false); setCreditsOpen(true); }}
+          onOpenCredits={() => setNowPlayingOpen(false)}
         />
         <TipArtistModal
           isOpen={tipArtistOpen}
@@ -280,7 +288,7 @@ function AppContent() {
         )}
         <OfflineIndicator />
       </div>
-    </PlayerProvider>
+    </>
   );
 }
 
