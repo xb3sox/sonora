@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
 import { FollowProvider } from './context/FollowContext';
 import { PlayCountProvider, usePlayCount } from './context/PlayCountContext';
+import { PlaylistProvider } from './context/PlaylistContext';
 import { useMediaSession } from './hooks/useMediaSession';
 import { useDocumentTitle } from './hooks/useDocumentTitle';
 import { usePlaybackHistory } from './hooks/usePlaybackHistory';
@@ -22,6 +23,8 @@ import { TipArtistModal } from './components/TipArtistModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ArtistRadio } from './components/ArtistRadio';
+import { CreditsModal } from './components/CreditsModal';
+import { ImportModal } from './components/ImportModal';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -64,6 +67,8 @@ function AppContent() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [artistRadioOpen, setArtistRadioOpen] = useState(false);
   const [artistRadioId, setArtistRadioId] = useState<string | null>(null);
+  const [creditsOpen, setCreditsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   
   // Initialize Media Session API and document title updates
   useMediaSession();
@@ -175,7 +180,7 @@ function AppContent() {
       case 'deep-listening':
         return <DeepListeningPage onNavigate={handleNavigate} onOpenLyrics={() => setLyricsOpen(true)} />;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage onOpenImport={() => setImportOpen(true)} />;
       case 'stats':
         return <StatsPage />;
       case 'history':
@@ -271,7 +276,16 @@ function AppContent() {
           onClose={() => setNowPlayingOpen(false)}
           onOpenQueue={() => { setNowPlayingOpen(false); setShowQueue(true); }}
           onOpenLyrics={() => { setNowPlayingOpen(false); setLyricsOpen(true); }}
-          onOpenCredits={() => setNowPlayingOpen(false)}
+          onOpenCredits={() => { setNowPlayingOpen(false); setCreditsOpen(true); }}
+        />
+        <CreditsModal
+          isOpen={creditsOpen}
+          onClose={() => setCreditsOpen(false)}
+          track={state.currentTrack}
+        />
+        <ImportModal
+          isOpen={importOpen}
+          onClose={() => setImportOpen(false)}
         />
         <TipArtistModal
           isOpen={tipArtistOpen}
@@ -302,7 +316,9 @@ export default function App() {
       <PlayerProvider>
         <FollowProvider>
           <PlayCountProvider>
-            <AppContent />
+            <PlaylistProvider>
+              <AppContent />
+            </PlaylistProvider>
           </PlayCountProvider>
         </FollowProvider>
       </PlayerProvider>

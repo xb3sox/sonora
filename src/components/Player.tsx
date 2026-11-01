@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AlbumArt } from './AlbumArt';
 import { LyricsStrip } from './LyricsStrip';
+import { MiniVisualizer } from './MiniVisualizer';
 import { 
   Play, Pause, SkipBack, SkipForward, 
   Shuffle, Repeat, Repeat1, Volume2, VolumeX,
@@ -59,6 +60,7 @@ export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettin
           <p className="text-sm font-medium text-sonora-bark truncate">{currentTrack.title}</p>
           <p className="text-xs text-sonora-stone truncate">{currentTrack.artist}</p>
         </div>
+        <MiniVisualizer />
         <button
           onClick={() => toggleFavorite(currentTrack.id)}
           className={`p-1.5 rounded-full transition-calm flex-shrink-0

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, Music2, Check } from 'lucide-react';
 import { Track } from '../types';
 import { usePlayer } from '../context/PlayerContext';
-import { playlists, tracks } from '../data';
+import { usePlaylists } from '../context/PlaylistContext';
 import { AlbumArt } from './AlbumArt';
 
 interface CreatePlaylistModalProps {
@@ -13,6 +13,7 @@ interface CreatePlaylistModalProps {
 
 export function CreatePlaylistModal({ isOpen, onClose, trackToAdd }: CreatePlaylistModalProps) {
   const { addToast } = usePlayer();
+  const { playlists, createPlaylist, addTrackToPlaylist } = usePlaylists();
   const [mode, setMode] = useState<'choose' | 'create'>('choose');
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -21,6 +22,8 @@ export function CreatePlaylistModal({ isOpen, onClose, trackToAdd }: CreatePlayl
 
   const handleCreate = () => {
     if (!newName.trim()) return;
+    const trackIds = trackToAdd ? [trackToAdd.id] : [];
+    createPlaylist(newName, newDesc, trackIds);
     addToast(`Created playlist "${newName}"`, 'success');
     setNewName('');
     setNewDesc('');
@@ -31,6 +34,7 @@ export function CreatePlaylistModal({ isOpen, onClose, trackToAdd }: CreatePlayl
   const handleAddToExisting = (playlistId: string) => {
     const playlist = playlists.find(p => p.id === playlistId);
     if (playlist && trackToAdd) {
+      addTrackToPlaylist(playlistId, trackToAdd.id);
       addToast(`Added "${trackToAdd.title}" to "${playlist.name}"`, 'success');
     }
     onClose();

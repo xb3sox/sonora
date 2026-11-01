@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { playlists, albums, tracks } from '../data';
+import { usePlaylists } from '../context/PlaylistContext';
+import { albums, tracks } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
@@ -16,6 +17,7 @@ interface LibraryPageProps {
 
 export function LibraryPage({ onNavigate, onOpenCreatePlaylist }: LibraryPageProps) {
   const { play, playAlbum, favorites } = usePlayer();
+  const { playlists } = usePlaylists();
   const [tab, setTab] = useState<'playlists' | 'albums' | 'tracks' | 'liked'>('playlists');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'title' | 'artist' | 'album' | 'duration'>('title');

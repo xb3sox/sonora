@@ -6,7 +6,11 @@ import {
   Upload, ExternalLink
 } from 'lucide-react';
 
-export function SettingsPage() {
+interface SettingsPageProps {
+  onOpenImport?: () => void;
+}
+
+export function SettingsPage({ onOpenImport }: SettingsPageProps) {
   const [audioQuality, setAudioQuality] = useState<'standard' | 'high' | 'lossless'>('lossless');
   const [offlineEnabled, setOfflineEnabled] = useState(true);
   const [dataCollection, setDataCollection] = useState(false);
@@ -186,7 +190,7 @@ export function SettingsPage() {
         {!showImport ? (
           <div className="bg-sonora-warm rounded-xl divide-y divide-sonora-sand">
             <button 
-              onClick={() => setShowImport(true)}
+              onClick={() => onOpenImport ? onOpenImport() : setShowImport(true)}
               className="w-full flex items-center justify-between p-4 hover:bg-sonora-sand transition-calm text-left"
             >
               <div>
