@@ -4,6 +4,7 @@ import { FollowProvider } from './context/FollowContext';
 import { PlayCountProvider, usePlayCount } from './context/PlayCountContext';
 import { useMediaSession } from './hooks/useMediaSession';
 import { useDocumentTitle } from './hooks/useDocumentTitle';
+import { usePlaybackHistory } from './hooks/usePlaybackHistory';
 import { Sidebar } from './components/Sidebar';
 import { PlayerBar } from './components/Player';
 import { MobileNav } from './components/MobileNav';
@@ -73,11 +74,13 @@ function AppContent() {
     setVolume, toggleShuffle, toggleRepeat, toggleFavorite 
   } = usePlayer();
   const { incrementPlayCount } = usePlayCount();
+  const { addToHistory } = usePlaybackHistory();
 
-  // Increment play count when track changes
+  // Increment play count and add to history when track changes
   useEffect(() => {
     if (state.currentTrack) {
       incrementPlayCount(state.currentTrack.id);
+      addToHistory(state.currentTrack);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.currentTrack?.id]);

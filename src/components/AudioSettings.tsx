@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sliders, Waves } from 'lucide-react';
+import { usePlayer } from '../context/PlayerContext';
+import { PlaybackSpeedControl } from './PlaybackSpeedControl';
 
 interface AudioSettingsProps {
   isOpen: boolean;
@@ -18,8 +20,8 @@ const eqPresets = [
 const freqLabels = ['60Hz', '250Hz', '1kHz', '4kHz', '12kHz'];
 
 export function AudioSettings({ isOpen, onClose }: AudioSettingsProps) {
+  const { playbackSpeed, crossfadeDuration, setPlaybackSpeed, setCrossfadeDuration } = usePlayer();
   const [selectedPreset, setSelectedPreset] = useState('flat');
-  const [crossfade, setCrossfade] = useState(0);
   const [gapless, setGapless] = useState(true);
   const [volumeNorm, setVolumeNorm] = useState(true);
 
@@ -87,24 +89,37 @@ export function AudioSettings({ isOpen, onClose }: AudioSettingsProps) {
             </div>
           </section>
 
+          {/* Playback Speed */}
+          <section>
+            <h3 className="text-sm font-semibold text-sonora-bark mb-3">Playback Speed</h3>
+            <div className="bg-sonora-warm rounded-xl p-4">
+              <PlaybackSpeedControl speed={playbackSpeed} onSpeedChange={setPlaybackSpeed} />
+              <p className="text-xs text-sonora-stone mt-3">
+                {playbackSpeed === 1 ? 'Normal playback speed' : 
+                 playbackSpeed < 1 ? 'Slower playback for detailed listening' : 
+                 'Faster playback for quick review'}
+              </p>
+            </div>
+          </section>
+
           {/* Crossfade */}
           <section>
             <h3 className="text-sm font-semibold text-sonora-bark mb-3">Crossfade</h3>
             <div className="bg-sonora-warm rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-sonora-earth">Duration</span>
-                <span className="text-sm font-medium text-sonora-bark tabular-nums">{crossfade}s</span>
+                <span className="text-sm font-medium text-sonora-bark tabular-nums">{crossfadeDuration}s</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max="12"
-                value={crossfade}
-                onChange={(e) => setCrossfade(Number(e.target.value))}
+                value={crossfadeDuration}
+                onChange={(e) => setCrossfadeDuration(Number(e.target.value))}
                 className="w-full"
               />
               <p className="text-xs text-sonora-stone mt-2">
-                {crossfade === 0 ? 'No crossfade between tracks' : `Smooth ${crossfade}s transition between tracks`}
+                {crossfadeDuration === 0 ? 'No crossfade between tracks' : `Smooth ${crossfadeDuration}s transition between tracks`}
               </p>
             </div>
           </section>

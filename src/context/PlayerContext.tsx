@@ -14,6 +14,8 @@ interface PlayerContextType {
   favorites: Set<string>;
   toasts: Toast[];
   showQueue: boolean;
+  playbackSpeed: number;
+  crossfadeDuration: number;
   play: (track: Track) => void;
   playAlbum: (trackIds: string[]) => void;
   togglePlay: () => void;
@@ -25,9 +27,12 @@ interface PlayerContextType {
   toggleRepeat: () => void;
   addToQueue: (track: Track) => void;
   removeFromQueue: (index: number) => void;
+  reorderQueue: (fromIndex: number, toIndex: number) => void;
   toggleFavorite: (trackId: string) => void;
   isFavorite: (trackId: string) => boolean;
   setShowQueue: (show: boolean) => void;
+  setPlaybackSpeed: (speed: number) => void;
+  setCrossfadeDuration: (duration: number) => void;
   addToast: (message: string, type?: 'success' | 'info' | 'error') => void;
 }
 
@@ -48,6 +53,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set(favoritesArray));
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showQueue, setShowQueue] = useState(false);
+  const [playbackSpeed, setPlaybackSpeedState] = useLocalStorage<number>('sonora-playback-speed', 1);
+  const [crossfadeDuration, setCrossfadeDurationState] = useLocalStorage<number>('sonora-crossfade', 0);
 
   const intervalRef = useRef<number | null>(null);
 
@@ -188,6 +195,25 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const reorderQueue = useCallback((fromIndex: number, toIndex: number) => {
+    setState(prev => {
+      const newQueue = [...prev.queue];
+      const [removed] = newQueue.splice(fromIndex, 1);
+      newQueue.splice(toIndex, 0, removed);
+      return { ...prev, queue: newQueue };
+    });
+  }, []);
+
+  const setPlaybackSpeed = useCallback((speed: number) => {
+    setPlaybackSpeedState(speed);
+    addToast(`Playback speed: ${speed}x`, 'info');
+  }, [setPlaybackSpeedState, addToast]);
+
+  const setCrossfadeDuration = useCallback((duration: number) => {
+    setCrossfadeDurationState(duration);
+    addToast(`Crossfade: ${duration}s`, 'info');
+  }, [setCrossfadeDurationState, addToast]);
+
   const toggleFavorite = useCallback((trackId: string) => {
     setFavorites(prev => {
       const next = new Set(prev);
@@ -214,6 +240,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       favorites,
       toasts,
       showQueue,
+      playbackSpeed,
+      crossfadeDuration,
       play,
       playAlbum,
       togglePlay,
@@ -225,9 +253,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       toggleRepeat,
       addToQueue,
       removeFromQueue,
+      reorderQueue,
       toggleFavorite,
       isFavorite,
       setShowQueue,
+      setPlaybackSpeed,
+      setCrossfadeDuration,
       addToast,
     }}>
       {children}

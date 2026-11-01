@@ -1,55 +1,45 @@
 import React, { useMemo } from 'react';
-import { tracks } from '../data';
 import { View } from '../types';
 import { TrackRow } from '../components/TrackRow';
-import { Clock, Calendar, Music2 } from 'lucide-react';
+import { EmptyState } from '../components/EmptyState';
+import { usePlaybackHistory, PlaybackHistoryItem } from '../hooks/usePlaybackHistory';
+import { Clock, Calendar, Trash2 } from 'lucide-react';
 
 interface HistoryPageProps {
   onNavigate: (view: View, id?: string) => void;
 }
 
-// Simulated playback history with timestamps
-const historyData = [
-  { trackId: 't1', playedAt: new Date(Date.now() - 1000 * 60 * 5) }, // 5 min ago
-  { trackId: 't6', playedAt: new Date(Date.now() - 1000 * 60 * 25) }, // 25 min ago
-  { trackId: 't8', playedAt: new Date(Date.now() - 1000 * 60 * 60) }, // 1 hour ago
-  { trackId: 't4', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 3) }, // 3 hours ago
-  { trackId: 't2', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 5) }, // 5 hours ago
-  { trackId: 't9', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 24) }, // 1 day ago
-  { trackId: 't7', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 24) }, // 1 day ago
-  { trackId: 't3', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 25) }, // Yesterday
-  { trackId: 't10', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 48) }, // 2 days ago
-  { trackId: 't5', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 48) }, // 2 days ago
-  { trackId: 't11', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 72) }, // 3 days ago
-  { trackId: 't12', playedAt: new Date(Date.now() - 1000 * 60 * 60 * 96) }, // 4 days ago
-];
-
-function formatTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+function formatTimeAgo(timestamp: number): string {
+  const now = Date.now();
+  const diffMs = now - timestamp;
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
+  if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function groupByDay(items: (typeof historyData[0] & { track: typeof tracks[0] })[]) {
-  const groups: { label: string; items: (typeof historyData[0] & { track: typeof tracks[0] })[] }[] = [];
+function groupByDay(items: PlaybackHistoryItem[]) {
+  const groups: { label: string; items: PlaybackHistoryItem[] }[] = [];
   let currentDay = '';
 
   items.forEach(item => {
-    const day = item.playedAt.toDateString();
+    const day = new Date(item.playedAt).toDateString();
     if (day !== currentDay) {
       currentDay = day;
       const today = new Date().toDateString();
       const yesterday = new Date(Date.now() - 1000 * 60 * 60 * 24).toDateString();
       
-      let label = item.playedAt.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      let label = new Date(item.playedAt).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      });
       if (day === today) label = 'Today';
       else if (day === yesterday) label = 'Yesterday';
       
@@ -62,33 +52,53 @@ function groupByDay(items: (typeof historyData[0] & { track: typeof tracks[0] })
 }
 
 export function HistoryPage({ onNavigate }: HistoryPageProps) {
-  const groupedHistory = useMemo(() => {
-    const fullHistory = historyData.map(h => ({
-      ...h,
-      track: tracks.find(t => t.id === h.trackId)!
-    })).filter(h => h.track);
-    
-    return groupByDay(fullHistory);
-  }, []);
+  const { history, clearHistory } = usePlaybackHistory();
 
-  const totalPlays = historyData.length;
-  const totalTime = historyData.reduce((sum, h) => {
-    const track = tracks.find(t => t.id === h.trackId);
-    return sum + (track?.duration || 0);
-  }, 0);
+  const groupedHistory = useMemo(() => {
+    return groupByDay(history);
+  }, [history]);
+
+  const totalPlays = history.length;
+  const totalTime = history.reduce((sum, h) => sum + h.track.duration, 0);
+
+  if (history.length === 0) {
+    return (
+      <EmptyState
+        type="history"
+        title="No listening history yet"
+        description="Tracks you play will appear here, grouped by day"
+      />
+    );
+  }
 
   return (
     <div className="p-6 sm:p-8 max-w-4xl mx-auto">
       <header className="mb-8 pt-8 sm:pt-0">
-        <div className="flex items-center gap-2 text-xs font-semibold text-sonora-accent uppercase tracking-wider mb-2">
-          <Clock size={14} /> Playback History
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-sonora-accent uppercase tracking-wider mb-2">
+              <Clock size={14} /> Playback History
+            </div>
+            <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-2">
+              Recently Played
+            </h1>
+            <p className="text-sonora-stone text-sm">
+              {totalPlays} tracks · {Math.floor(totalTime / 60)} minutes total
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              if (window.confirm('Clear all playback history? This cannot be undone.')) {
+                clearHistory();
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-sonora-stone hover:text-red-600 hover:bg-red-50 rounded-lg transition-calm"
+            aria-label="Clear history"
+          >
+            <Trash2 size={16} />
+            <span className="hidden sm:inline">Clear</span>
+          </button>
         </div>
-        <h1 className="font-display text-3xl font-semibold text-sonora-bark mb-2">
-          Recently Played
-        </h1>
-        <p className="text-sonora-stone text-sm">
-          {totalPlays} tracks · {Math.floor(totalTime / 60)} minutes this week
-        </p>
       </header>
 
       {/* Grouped History */}
@@ -100,10 +110,13 @@ export function HistoryPage({ onNavigate }: HistoryPageProps) {
               <h2 className="text-xs font-semibold text-sonora-stone uppercase tracking-wider">
                 {group.label}
               </h2>
+              <span className="text-xs text-sonora-stone">
+                ({group.items.length} {group.items.length === 1 ? 'track' : 'tracks'})
+              </span>
             </div>
             <div className="space-y-0.5">
               {group.items.map((item, j) => (
-                <div key={j} className="flex items-center gap-2">
+                <div key={`${item.track.id}-${item.playedAt}`} className="flex items-center gap-2">
                   <div className="flex-1">
                     <TrackRow
                       track={item.track}
@@ -124,7 +137,7 @@ export function HistoryPage({ onNavigate }: HistoryPageProps) {
       {/* Privacy note */}
       <div className="mt-8 bg-sonora-warm rounded-xl p-4 text-center">
         <p className="text-xs text-sonora-stone italic">
-          History is stored locally and never shared. You can clear it anytime in Settings.
+          History is stored locally on your device and never shared. You can clear it anytime.
         </p>
       </div>
     </div>

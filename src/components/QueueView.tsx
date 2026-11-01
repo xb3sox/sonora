@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AlbumArt } from './AlbumArt';
 import { X, Music2, ListMusic, GripVertical } from 'lucide-react';
@@ -8,18 +8,43 @@ interface QueueViewProps {
 }
 
 export function QueueView({ onClose }: QueueViewProps) {
-  const { state, removeFromQueue, play, addToast } = usePlayer();
+  const { state, removeFromQueue, reorderQueue, play, addToast } = usePlayer();
   const { currentTrack, queue } = state;
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handleMoveUp = (index: number) => {
-    if (index === 0) return;
-    // In a real app, we'd reorder the queue
-    addToast('Queue reordered', 'info');
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.outerHTML);
   };
 
-  const handleMoveDown = (index: number) => {
-    if (index === queue.length - 1) return;
-    addToast('Queue reordered', 'info');
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === toIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    reorderQueue(draggedIndex, toIndex);
+    addToast('Queue reordered', 'success');
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -86,32 +111,23 @@ export function QueueView({ onClose }: QueueViewProps) {
                 {queue.map((track, i) => (
                   <div
                     key={`${track.id}-${i}`}
-                    className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, i)}
+                    onDragOver={(e) => handleDragOver(e, i)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, i)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-2 p-2.5 rounded-lg transition-calm group cursor-move
+                      ${draggedIndex === i ? 'opacity-50' : ''}
+                      ${dragOverIndex === i ? 'bg-sonora-sand border-2 border-sonora-earth border-dashed' : 'hover:bg-sonora-warm'}
+                    `}
                   >
-                    <GripVertical size={14} className="text-sonora-sand cursor-grab flex-shrink-0" />
+                    <GripVertical size={14} className="text-sonora-sand flex-shrink-0 group-hover:text-sonora-earth transition-calm" />
                     <span className="w-5 text-center text-xs text-sonora-stone tabular-nums">{i + 1}</span>
                     <AlbumArt type="track" id={track.id} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-sonora-bark truncate">{track.title}</p>
                       <p className="text-xs text-sonora-stone truncate">{track.artist}</p>
-                    </div>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-calm">
-                      <button
-                        onClick={() => handleMoveUp(i)}
-                        className="p-1 rounded text-sonora-stone hover:text-sonora-bark text-xs"
-                        disabled={i === 0}
-                        aria-label="Move up"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        onClick={() => handleMoveDown(i)}
-                        className="p-1 rounded text-sonora-stone hover:text-sonora-bark text-xs"
-                        disabled={i === queue.length - 1}
-                        aria-label="Move down"
-                      >
-                        ↓
-                      </button>
                     </div>
                     <button
                       onClick={() => {
