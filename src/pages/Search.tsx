@@ -39,7 +39,7 @@ export function SearchPage({ onNavigate }: SearchPageProps) {
       }, 2000); // Save after 2 seconds of typing
       return () => clearTimeout(timeout);
     }
-  }, [query]);
+  }, [query, setRecentSearches]);
 
   const clearRecentSearches = () => {
     setRecentSearches([]);

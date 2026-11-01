@@ -68,10 +68,28 @@ export function WaveformVisualizer({ isPlaying, progress, className = '' }: Wave
           ctx.globalAlpha = isPlaying ? 0.4 : 0.3;
         }
 
-        // Draw bar with rounded ends
+        // Draw bar with rounded ends (with fallback for older browsers)
         const radius = Math.min(barWidth / 2 - gap, barHeight / 2);
+        const barX = x + gap / 2;
+        const barY = y;
+        const w = barWidth - gap;
+        const h = barHeight;
+        
         ctx.beginPath();
-        ctx.roundRect(x + gap / 2, y, barWidth - gap, barHeight, radius);
+        if (ctx.roundRect) {
+          ctx.roundRect(barX, barY, w, h, radius);
+        } else {
+          // Fallback for older browsers
+          ctx.moveTo(barX + radius, barY);
+          ctx.lineTo(barX + w - radius, barY);
+          ctx.quadraticCurveTo(barX + w, barY, barX + w, barY + radius);
+          ctx.lineTo(barX + w, barY + h - radius);
+          ctx.quadraticCurveTo(barX + w, barY + h, barX + w - radius, barY + h);
+          ctx.lineTo(barX + radius, barY + h);
+          ctx.quadraticCurveTo(barX, barY + h, barX, barY + h - radius);
+          ctx.lineTo(barX, barY + radius);
+          ctx.quadraticCurveTo(barX, barY, barX + radius, barY);
+        }
         ctx.fill();
       });
 

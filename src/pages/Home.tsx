@@ -71,11 +71,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   // Calculate personalized stats
   const totalPlays = Array.from(playCounts.values()).reduce((sum, count) => sum + count, 0);
-  const topArtistId = Array.from(playCounts.entries())
+  const topTrackId = Array.from(playCounts.entries())
     .sort((a, b) => b[1] - a[1])[0]?.[0];
-  const topArtist = topArtistId ? artists.find(a => 
-    tracks.some(t => t.id === topArtistId && t.artistId === a.id)
-  ) : null;
+  const topTrack = topTrackId ? tracks.find(t => t.id === topTrackId) : null;
+  const topArtist = topTrack ? artists.find(a => a.id === topTrack.artistId) : null;
 
   return (
     <div className="p-6 sm:p-8 max-w-6xl mx-auto">

@@ -13,7 +13,6 @@ import { Track } from '../types';
 export function smartShuffle(tracks: Track[]): Track[] {
   if (tracks.length <= 1) return [...tracks];
 
-  const shuffled = [...tracks];
   const result: Track[] = [];
   
   // Group tracks by artist

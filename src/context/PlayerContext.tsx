@@ -62,9 +62,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   // Auto-advance to next track when current track ends
   useEffect(() => {
     if (state.isPlaying && state.currentTrack) {
+      // Update progress every 100ms for smooth animation
       intervalRef.current = window.setInterval(() => {
         setState(prev => {
-          const increment = 100 / (prev.currentTrack?.duration || 300);
+          const increment = 10 / (prev.currentTrack?.duration || 300); // 100ms = 0.1s, so 10/300 = 0.033% per 100ms
           const newProgress = prev.progress + increment;
           
           // Track ended - advance to next
@@ -91,7 +92,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           
           return { ...prev, progress: newProgress };
         });
-      }, 1000);
+      }, 100); // Update every 100ms for smooth progress
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
