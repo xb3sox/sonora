@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
+import { useFollow } from '../context/FollowContext';
 import { artists, albums, tracks } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
@@ -7,8 +8,22 @@ import { TrackRow } from '../components/TrackRow';
 import { FollowButton } from '../components/FollowButton';
 import { TipButton } from '../components/TipButton';
 import { 
-  Play, ArrowLeft, Users, BookOpen, Radio
+  Play, ArrowLeft, Users, BookOpen, Radio, TrendingUp, Disc3
 } from 'lucide-react';
+
+// Simulated social proof data
+const artistStats: Record<string, { followers: number; monthlyListeners: number }> = {
+  a1: { followers: 12453, monthlyListeners: 45230 },
+  a2: { followers: 8921, monthlyListeners: 32100 },
+  a3: { followers: 15678, monthlyListeners: 58900 },
+  a4: { followers: 6234, monthlyListeners: 21500 },
+};
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toString();
+}
 
 interface ArtistPageProps {
   artistId: string;
@@ -19,6 +34,7 @@ interface ArtistPageProps {
 
 export function ArtistPage({ artistId, onNavigate, onTipArtist, onOpenArtistRadio }: ArtistPageProps) {
   const { play, playAlbum } = usePlayer();
+  const { followedArtists } = useFollow();
   const artist = artists.find(a => a.id === artistId);
   
   if (!artist) {
@@ -31,6 +47,16 @@ export function ArtistPage({ artistId, onNavigate, onTipArtist, onOpenArtistRadi
 
   const artistAlbums = albums.filter(a => a.artistId === artistId);
   const artistTracks = tracks.filter(t => t.artistId === artistId);
+  const stats = artistStats[artistId] || { followers: 0, monthlyListeners: 0 };
+  
+  // Get top tracks (sorted by duration as a proxy for popularity)
+  const topTracks = [...artistTracks].sort((a, b) => b.duration - a.duration).slice(0, 5);
+  
+  // Get related artists (same genre)
+  const relatedArtists = artists.filter(a => 
+    a.id !== artistId && 
+    a.genres.some(g => artist.genres.includes(g))
+  ).slice(0, 4);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -50,12 +76,19 @@ export function ArtistPage({ artistId, onNavigate, onTipArtist, onOpenArtistRadi
           <div className="flex-1">
             <p className="text-xs font-semibold text-sonora-stone uppercase tracking-wider mb-1">Artist</p>
             <h1 className="font-display text-3xl sm:text-4xl font-semibold text-sonora-bark mb-2">{artist.name}</h1>
-            <div className="flex items-center gap-3 text-sm text-sonora-stone flex-wrap mb-3">
+            <div className="flex items-center gap-3 text-sm text-sonora-stone flex-wrap mb-2">
               <span>{artist.genres.join(', ')}</span>
-              <span>·</span>
-              <span>{artistAlbums.length} {artistAlbums.length === 1 ? 'album' : 'albums'}</span>
-              <span>·</span>
-              <span>{artistTracks.length} tracks</span>
+            </div>
+            {/* Social Proof Stats */}
+            <div className="flex items-center gap-4 text-xs text-sonora-stone mb-3">
+              <span className="flex items-center gap-1">
+                <Users size={12} />
+                <span className="font-medium text-sonora-bark">{formatNumber(stats.followers)}</span> followers
+              </span>
+              <span className="flex items-center gap-1">
+                <TrendingUp size={12} />
+                <span className="font-medium text-sonora-bark">{formatNumber(stats.monthlyListeners)}</span> monthly listeners
+              </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
@@ -109,11 +142,11 @@ export function ArtistPage({ artistId, onNavigate, onTipArtist, onOpenArtistRadi
         </div>
       </div>
 
-      {/* All Tracks */}
-      <div className="px-6 sm:px-8 pb-8">
-        <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">All Tracks</h2>
+      {/* Top Tracks */}
+      <div className="px-6 sm:px-8 mb-8">
+        <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">Popular</h2>
         <div className="space-y-0.5">
-          {artistTracks.map((track, i) => (
+          {topTracks.map((track, i) => (
             <TrackRow 
               key={track.id} 
               track={track} 
@@ -122,6 +155,48 @@ export function ArtistPage({ artistId, onNavigate, onTipArtist, onOpenArtistRadi
             />
           ))}
         </div>
+      </div>
+
+      {/* Related Artists */}
+      {relatedArtists.length > 0 && (
+        <div className="px-6 sm:px-8 mb-8">
+          <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">Fans also like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {relatedArtists.map(related => (
+              <button
+                key={related.id}
+                onClick={() => onNavigate('artist', related.id)}
+                className="group text-center"
+              >
+                <div className="w-full aspect-square max-w-[140px] mx-auto rounded-full overflow-hidden mb-3 shadow-md">
+                  <AlbumArt type="artist" id={related.id} size="xl" className="w-full h-full" />
+                </div>
+                <p className="text-sm font-medium text-sonora-bark">{related.name}</p>
+                <p className="text-xs text-sonora-stone">{related.genres[0]}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Tracks */}
+      <div className="px-6 sm:px-8 pb-8">
+        <details className="group">
+          <summary className="font-display text-xl font-semibold text-sonora-bark mb-4 cursor-pointer list-none flex items-center gap-2">
+            <span>All Tracks ({artistTracks.length})</span>
+            <span className="text-sonora-stone group-open:rotate-180 transition-transform">↓</span>
+          </summary>
+          <div className="space-y-0.5 mt-4">
+            {artistTracks.map((track, i) => (
+              <TrackRow 
+                key={track.id} 
+                track={track} 
+                index={i}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        </details>
       </div>
     </div>
   );

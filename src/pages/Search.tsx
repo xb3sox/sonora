@@ -1,20 +1,49 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { tracks, albums, artists } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
 import { SearchFilters, SearchFilter } from '../components/SearchFilters';
-import { Search, Play, Music2, Disc3, Users } from 'lucide-react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { Search, Play, Music2, Disc3, Users, Clock, X, TrendingUp } from 'lucide-react';
 
 interface SearchPageProps {
   onNavigate: (view: View, id?: string) => void;
 }
 
+// Trending searches based on popular content
+const trendingSearches = [
+  { label: 'Ambient', icon: '🌿' },
+  { label: 'Elena Voss', icon: '🎵' },
+  { label: 'Folk', icon: '🎸' },
+  { label: 'Quiet Hours', icon: '💿' },
+  { label: 'Electronic', icon: '🎧' },
+  { label: 'Kai Nomura', icon: '🌊' },
+];
+
 export function SearchPage({ onNavigate }: SearchPageProps) {
   const { play } = usePlayer();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('all');
+  const [recentSearches, setRecentSearches] = useLocalStorage<string[]>('sonora-recent-searches', []);
+
+  // Save search to recent when user searches
+  useEffect(() => {
+    if (query.trim() && query.length > 1) {
+      const timeout = setTimeout(() => {
+        setRecentSearches(prev => {
+          const filtered = prev.filter(s => s !== query);
+          return [query, ...filtered].slice(0, 8); // Keep last 8 searches
+        });
+      }, 2000); // Save after 2 seconds of typing
+      return () => clearTimeout(timeout);
+    }
+  }, [query]);
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+  };
 
   const results = useMemo(() => {
     if (!query.trim()) return { tracks: [], albums: [], artists: [] };
@@ -57,25 +86,94 @@ export function SearchPage({ onNavigate }: SearchPageProps) {
         </div>
       </div>
 
-      {/* Empty State */}
+      {/* Empty State with Recent & Trending */}
       {!query.trim() && (
-        <div className="text-center py-16">
-          <Search size={48} className="text-sonora-sand mx-auto mb-4" />
-          <p className="text-sonora-stone text-sm mb-1">Search your library and discover new music</p>
-          <p className="text-sonora-stone/60 text-xs">Try searching for an artist, album, track, or genre</p>
-          
-          {/* Quick suggestions */}
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {['Ambient', 'Folk', 'Electronic', 'Elena Voss', 'Morning'].map(suggestion => (
-              <button
-                key={suggestion}
-                onClick={() => setQuery(suggestion)}
-                className="px-3 py-1.5 bg-sonora-warm rounded-full text-sm text-sonora-earth hover:bg-sonora-sand transition-calm"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
+        <div className="py-8">
+          {/* Recent Searches */}
+          {recentSearches.length > 0 && (
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-sonora-stone uppercase tracking-wider">
+                  <Clock size={14} /> Recent Searches
+                </h3>
+                <button
+                  onClick={clearRecentSearches}
+                  className="text-xs text-sonora-stone hover:text-sonora-bark transition-calm"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div className="space-y-1">
+                {recentSearches.map((search, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setQuery(search)}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-sonora-warm transition-calm group text-left"
+                  >
+                    <Clock size={14} className="text-sonora-stone flex-shrink-0" />
+                    <span className="text-sm text-sonora-bark flex-1">{search}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRecentSearches(prev => prev.filter((_, idx) => idx !== i));
+                      }}
+                      className="p-1 rounded-full text-sonora-stone opacity-0 group-hover:opacity-100 hover:text-sonora-bark transition-calm"
+                      aria-label="Remove from recent"
+                    >
+                      <X size={12} />
+                    </button>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Trending Searches */}
+          <section className="mb-8">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-sonora-stone uppercase tracking-wider mb-3">
+              <TrendingUp size={14} /> Trending
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {trendingSearches.map((trend, i) => (
+                <button
+                  key={i}
+                  onClick={() => setQuery(trend.label)}
+                  className="flex items-center gap-3 p-3 bg-sonora-warm hover:bg-sonora-sand rounded-xl transition-calm text-left group"
+                >
+                  <span className="text-2xl">{trend.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-sonora-bark truncate">{trend.label}</p>
+                    <p className="text-xs text-sonora-stone">Popular search</p>
+                  </div>
+                  <Play size={14} className="text-sonora-stone opacity-0 group-hover:opacity-100 transition-calm flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Browse Categories */}
+          <section>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-sonora-stone uppercase tracking-wider mb-3">
+              Browse by Genre
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { name: 'Ambient', color: 'from-sonora-sand to-sonora-mist', emoji: '🌿' },
+                { name: 'Folk', color: 'from-sonora-sage/30 to-sonora-earth/20', emoji: '🎸' },
+                { name: 'Electronic', color: 'from-sonora-accent/30 to-sonora-clay/20', emoji: '🎧' },
+                { name: 'Indie Folk', color: 'from-sonora-clay/30 to-sonora-accent/20', emoji: '🎵' },
+              ].map((genre, i) => (
+                <button
+                  key={i}
+                  onClick={() => setQuery(genre.name)}
+                  className={`relative aspect-[2/1] rounded-xl overflow-hidden bg-gradient-to-br ${genre.color} flex items-center justify-center group hover:scale-[1.02] transition-transform`}
+                >
+                  <span className="text-4xl opacity-60 group-hover:scale-110 transition-transform">{genre.emoji}</span>
+                  <span className="absolute bottom-2 left-3 text-sm font-medium text-sonora-bark">{genre.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
         </div>
       )}
 
