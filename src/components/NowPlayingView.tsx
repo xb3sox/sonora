@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AlbumArt } from './AlbumArt';
+import { WaveformVisualizer } from './WaveformVisualizer';
 import { 
   X, ChevronDown, Play, Pause, SkipBack, SkipForward,
   Shuffle, Repeat, Repeat1, Heart, Share2, ListMusic,
@@ -79,8 +80,13 @@ export function NowPlayingView({ isOpen, onClose, onOpenQueue, onOpenLyrics, onO
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 pb-4 overflow-y-auto">
         {/* Album Art */}
-        <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-2xl mb-8 shadow-2xl overflow-hidden">
+        <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-2xl mb-6 shadow-2xl overflow-hidden">
           <AlbumArt type="album" id={currentTrack.albumId} size="xl" className="w-full h-full" />
+        </div>
+
+        {/* Waveform Visualizer */}
+        <div className="w-full max-w-md mb-6">
+          <WaveformVisualizer isPlaying={isPlaying} progress={progress} />
         </div>
 
         {/* Track Info */}

@@ -134,6 +134,34 @@ export function AlbumPage({ albumId, onNavigate }: AlbumPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Related Albums */}
+      <div className="px-6 sm:px-8 pb-8">
+        <h2 className="font-display text-xl font-semibold text-sonora-bark mb-4">You might also like</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {albums
+            .filter(a => a.id !== album.id && (a.genre === album.genre || a.artistId === album.artistId))
+            .slice(0, 4)
+            .map(relatedAlbum => (
+              <button
+                key={relatedAlbum.id}
+                onClick={() => onNavigate('album', relatedAlbum.id)}
+                className="group text-left"
+              >
+                <div className="aspect-square rounded-xl mb-3 relative overflow-hidden shadow-md">
+                  <AlbumArt type="album" id={relatedAlbum.id} size="xl" className="w-full h-full" />
+                  <div className="absolute inset-0 bg-sonora-bark/0 group-hover:bg-sonora-bark/10 transition-calm flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-sonora-bark text-sonora-cream flex items-center justify-center opacity-0 group-hover:opacity-100 transition-calm shadow-lg">
+                      <Play size={16} className="ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm font-medium text-sonora-bark truncate">{relatedAlbum.title}</p>
+                <p className="text-xs text-sonora-stone truncate">{relatedAlbum.artist}</p>
+              </button>
+            ))}
+        </div>
+      </div>
     </div>
   );
 }

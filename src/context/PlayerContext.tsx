@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { Track, PlayerState } from '../types';
 import { tracks } from '../data';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { smartShuffle } from '../utils/shuffle';
 
 interface Toast {
   id: string;
@@ -170,7 +171,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleShuffle = useCallback(() => {
-    setState(prev => ({ ...prev, shuffle: !prev.shuffle }));
+    setState(prev => {
+      const newShuffle = !prev.shuffle;
+      if (newShuffle && prev.queue.length > 0) {
+        // Apply smart shuffle to queue
+        const shuffledQueue = smartShuffle(prev.queue);
+        return { ...prev, shuffle: newShuffle, queue: shuffledQueue };
+      }
+      return { ...prev, shuffle: newShuffle };
+    });
   }, []);
 
   const toggleRepeat = useCallback(() => {
