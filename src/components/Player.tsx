@@ -6,7 +6,7 @@ import { MiniVisualizer } from './MiniVisualizer';
 import { 
   Play, Pause, SkipBack, SkipForward, 
   Shuffle, Repeat, Repeat1, Volume2, VolumeX,
-  Headphones, ListMusic, Heart, Moon, Sliders, Share2, MoreHorizontal
+  Headphones, ListMusic, Heart, Moon, Sliders, Share2, MoreHorizontal, Focus
 } from 'lucide-react';
 
 interface PlayerBarProps {
@@ -16,9 +16,10 @@ interface PlayerBarProps {
   onOpenShare: () => void;
   onOpenNowPlaying?: () => void;
   onOpenLyrics?: () => void;
+  onOpenFocusMode?: () => void;
 }
 
-export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare, onOpenNowPlaying, onOpenLyrics }: PlayerBarProps) {
+export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettings, onOpenShare, onOpenNowPlaying, onOpenLyrics, onOpenFocusMode }: PlayerBarProps) {
   const { 
     state, togglePlay, next, previous, seek, setVolume, 
     toggleShuffle, toggleRepeat, toggleFavorite, isFavorite,
@@ -174,6 +175,16 @@ export function PlayerBar({ onDeepListening, onOpenSleepTimer, onOpenAudioSettin
             </span>
           )}
         </button>
+        {onOpenFocusMode && (
+          <button
+            onClick={onOpenFocusMode}
+            className="p-1.5 text-sonora-stone hover:text-sonora-bark transition-calm hidden md:block"
+            aria-label="Focus mode"
+            title="Focus mode (Cmd+Shift+F)"
+          >
+            <Focus size={16} />
+          </button>
+        )}
         <button
           onClick={onDeepListening}
           className="p-1.5 text-sonora-stone hover:text-sonora-bark transition-calm hidden md:block"

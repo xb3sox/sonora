@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { usePlaylists } from '../context/PlaylistContext';
 import { tracks, albums } from '../data';
 import { View } from '../types';
 import { AlbumArt } from '../components/AlbumArt';
 import { TrackRow } from '../components/TrackRow';
+import { PlaylistCardModal } from '../components/PlaylistCardModal';
 import { 
   Play, ArrowLeft, Pause, ListMusic, Clock, Music2, 
   Share2, Edit3, Trash2, Heart
@@ -19,6 +20,7 @@ export function PlaylistPage({ playlistId, onNavigate }: PlaylistPageProps) {
   const { play, playAlbum, state, toggleFavorite, isFavorite } = usePlayer();
   const { playlists, deletePlaylist } = usePlaylists();
   const playlist = playlists.find(p => p.id === playlistId);
+  const [showCardModal, setShowCardModal] = useState(false);
 
   if (!playlist) {
     return (
@@ -115,6 +117,7 @@ export function PlaylistPage({ playlistId, onNavigate }: PlaylistPageProps) {
                 <Heart size={18} fill={isFavorite(playlist.id) ? 'currentColor' : 'none'} />
               </button>
               <button
+                onClick={() => setShowCardModal(true)}
                 className="p-3 rounded-full bg-sonora-warm text-sonora-stone hover:text-sonora-bark transition-calm"
                 aria-label="Share playlist"
               >
@@ -182,6 +185,13 @@ export function PlaylistPage({ playlistId, onNavigate }: PlaylistPageProps) {
           ))}
         </div>
       </div>
+
+      {/* Playlist Card Modal */}
+      <PlaylistCardModal
+        isOpen={showCardModal}
+        onClose={() => setShowCardModal(false)}
+        playlist={playlist}
+      />
     </div>
   );
 }

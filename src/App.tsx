@@ -25,6 +25,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { ArtistRadio } from './components/ArtistRadio';
 import { CreditsModal } from './components/CreditsModal';
 import { ImportModal } from './components/ImportModal';
+import { FocusMode } from './components/FocusMode';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -69,6 +70,7 @@ function AppContent() {
   const [artistRadioId, setArtistRadioId] = useState<string | null>(null);
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [focusModeOpen, setFocusModeOpen] = useState(false);
   
   // Initialize Media Session API and document title updates
   useMediaSession();
@@ -98,12 +100,16 @@ function AppContent() {
 
   const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
 
-  // Command palette shortcut (Cmd+K)
+  // Command palette shortcut (Cmd+K) and Focus Mode (Cmd+Shift+F)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setCommandPaletteOpen(prev => !prev);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'F') {
+        e.preventDefault();
+        setFocusModeOpen(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -134,6 +140,7 @@ function AppContent() {
       setNowPlayingOpen(false);
       setTipArtistOpen(false);
       setCommandPaletteOpen(false);
+      setFocusModeOpen(false);
       setShowQueue(false);
     },
   }), [state, showQueue, togglePlay, next, previous, setVolume, toggleShuffle, toggleRepeat, toggleFavorite, setShowQueue, handleNavigate]);
@@ -249,6 +256,7 @@ function AppContent() {
           onOpenShare={() => setShareOpen(true)}
           onOpenNowPlaying={() => setNowPlayingOpen(true)}
           onOpenLyrics={() => setLyricsOpen(true)}
+          onOpenFocusMode={() => setFocusModeOpen(true)}
         />
         
         {/* Modals & Overlays */}
@@ -286,6 +294,10 @@ function AppContent() {
         <ImportModal
           isOpen={importOpen}
           onClose={() => setImportOpen(false)}
+        />
+        <FocusMode
+          isOpen={focusModeOpen}
+          onClose={() => setFocusModeOpen(false)}
         />
         <TipArtistModal
           isOpen={tipArtistOpen}
