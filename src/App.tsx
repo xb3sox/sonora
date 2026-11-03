@@ -26,6 +26,8 @@ import { ArtistRadio } from './components/ArtistRadio';
 import { CreditsModal } from './components/CreditsModal';
 import { ImportModal } from './components/ImportModal';
 import { FocusMode } from './components/FocusMode';
+import { MoodDiscovery } from './components/MoodDiscovery';
+import { QuickActions } from './components/QuickActions';
 import { HomePage } from './pages/Home';
 import { ExplorePage } from './pages/Explore';
 import { LibraryPage } from './pages/Library';
@@ -71,6 +73,7 @@ function AppContent() {
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
+  const [moodDiscoveryOpen, setMoodDiscoveryOpen] = useState(false);
   
   // Initialize Media Session API and document title updates
   useMediaSession();
@@ -164,7 +167,7 @@ function AppContent() {
   const renderPage = () => {
     switch (currentView) {
       case 'home':
-        return <HomePage onNavigate={handleNavigate} />;
+        return <HomePage onNavigate={handleNavigate} onOpenMoodDiscovery={() => setMoodDiscoveryOpen(true)} />;
       case 'explore':
         return <ExplorePage onNavigate={handleNavigate} />;
       case 'library':
@@ -317,6 +320,15 @@ function AppContent() {
           />
         )}
         <OfflineIndicator />
+        <MoodDiscovery
+          isOpen={moodDiscoveryOpen}
+          onClose={() => setMoodDiscoveryOpen(false)}
+          onNavigate={handleNavigate}
+        />
+        <QuickActions
+          onNavigate={handleNavigate}
+          onOpenCreatePlaylist={() => setCreatePlaylistOpen(true)}
+        />
       </div>
     </>
   );

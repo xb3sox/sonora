@@ -12,6 +12,7 @@ import {
 
 interface HomePageProps {
   onNavigate: (view: View, id?: string) => void;
+  onOpenMoodDiscovery?: () => void;
 }
 
 function getGreeting(): string {
@@ -61,7 +62,7 @@ function getMadeForYouMixes() {
   ];
 }
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate, onOpenMoodDiscovery }: HomePageProps) {
   const { play, playAlbum, state } = usePlayer();
   const { playCounts } = usePlayCount();
 
@@ -138,6 +139,31 @@ export function HomePage({ onNavigate }: HomePageProps) {
           ))}
         </div>
       </section>
+
+      {/* Mood Discovery */}
+      {onOpenMoodDiscovery && (
+        <section className="mb-12">
+          <button
+            onClick={onOpenMoodDiscovery}
+            className="w-full bg-gradient-to-r from-sonora-accent/20 to-sonora-clay/20 rounded-2xl p-6 text-left hover:from-sonora-accent/30 hover:to-sonora-clay/30 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-sonora-bark/10 flex items-center justify-center">
+                <Sparkles size={28} className="text-sonora-accent" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-display text-lg font-semibold text-sonora-bark mb-1">
+                  Discover by Mood
+                </h3>
+                <p className="text-sm text-sonora-stone">
+                  Find music that matches how you're feeling right now
+                </p>
+              </div>
+              <ArrowRight size={20} className="text-sonora-stone group-hover:text-sonora-bark group-hover:translate-x-1 transition-all" />
+            </div>
+          </button>
+        </section>
+      )}
 
       {/* Quick Play Grid */}
       <section className="mb-12">
